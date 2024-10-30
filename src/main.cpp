@@ -10,32 +10,47 @@ std::unique_ptr<Scene> test_scene()
 {
   auto scene = std::make_unique<Scene>();
 
-  Material* material = new Material();
-  material->albedo = glm::dvec3(1.0, 0.0, 0.0);
-  material->radiance = glm::dvec3(0.0, 1.0, 0.5) * 10.0;
-
-  Primitive primitive;
-  primitive.type = Primitive::SPHERE;
-  primitive.sphere.center = glm::dvec3(0.0, 0.0, -5.0);
-  primitive.sphere.radius = 1.0;
-  primitive.material = material;
-
-  scene->primitives.push_back(primitive);
+  {
+    // sphere
+    Primitive primitive;
+    primitive.type = Primitive::SPHERE;
+    primitive.sphere.center = glm::dvec3(0.0, .75, -4.0);
+    primitive.sphere.radius = 1.0;
+    primitive.material = new Material(glm::dvec3(0.77, 0.0, 0.0));
+    scene->primitives.push_back(primitive);
+  }
+  {
+    // base
+    Primitive primitive;
+    primitive.type = Primitive::SPHERE;
+    primitive.sphere.center = glm::dvec3(0.0, -5000.0, -4.0);
+    primitive.sphere.radius = 5000.0;
+    primitive.material = new Material(glm::dvec3(0.77));
+    scene->primitives.push_back(primitive);
+  }
+  {
+    // light
+    Primitive primitive;
+    primitive.type = Primitive::SPHERE;
+    primitive.sphere.center = glm::dvec3(0.0, 20.0, -4.0);
+    primitive.sphere.radius = 15.0;
+    primitive.material = new Material(glm::dvec3(0.99), glm::dvec3(0.99) * 12.0);
+    scene->primitives.push_back(primitive);
+  }
 
   return scene;
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
   std::unique_ptr<Scene> scene = test_scene();
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
   camera->set_forward(glm::dvec3(0, 0, -1));
-  camera->set_position(glm::dvec3(0, 0, 0));
-
+  camera->set_position(glm::dvec3(0, 1, 0));
 
   Renderer renderer(camera.get(), scene.get());
-  renderer.render(5, 3);
+  renderer.render(8, 2);
   renderer.save_image("result.png");
   return 0;
 }

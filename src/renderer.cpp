@@ -14,10 +14,10 @@
 Renderer::Renderer(Camera *camera, Scene *scene) : m_camera(camera), m_scene(scene)
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
-  std::cout << "global up: " << m_camera->m_global_up << std::endl;
-  std::cout << "forward:   " << m_camera->m_forward << std::endl;
-  std::cout << "up:        " << m_camera->m_up << std::endl;
-  std::cout << "right:     " << m_camera->m_right << std::endl;
+  // std::cout << "global up: " << m_camera->m_global_up << std::endl;
+  // std::cout << "forward:   " << m_camera->m_forward << std::endl;
+  // std::cout << "up:        " << m_camera->m_up << std::endl;
+  // std::cout << "right:     " << m_camera->m_right << std::endl;
 }
 
 Renderer::~Renderer()
@@ -25,7 +25,7 @@ Renderer::~Renderer()
   if (m_buffer != nullptr) delete[] m_buffer;
 }
 
-void Renderer::render(int samples, int max_depth)
+void Renderer::render(int samples, int max_bounce)
 {
   double sample_weight = 1.0 / double(samples);
 
@@ -39,7 +39,7 @@ void Renderer::render(int samples, int max_depth)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        color += m_scene->trace_ray(ray, max_depth);
+        color += m_scene->trace_ray(ray, max_bounce);
       }
 
       m_buffer[y * m_camera->width() + x] = color * sample_weight;

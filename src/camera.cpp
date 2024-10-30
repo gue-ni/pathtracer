@@ -31,7 +31,7 @@ Ray Camera::get_ray(int x, int y) const
   double height = 2 * half_height;
 
   glm::dvec3 target = m_position + m_forward;
-  glm::dvec3 view_point = target + (width * m_right * uv.x) + (height * m_up * uv.y);
+  glm::dvec3 view_point = target + (width * m_right * uv.x) - (height * m_up * uv.y);
 
   ray.direction = glm::normalize(view_point - m_position);
   return ray;
