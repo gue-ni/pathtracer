@@ -11,11 +11,10 @@ class Renderer
  public:
   Renderer(Camera *camera, Scene *scene);
   ~Renderer();
-  void render();
+  void render(int samples, int max_depth);
   void save_image(const std::filesystem::path &path);
 
  private:
-  int m_width, m_height;
   glm::dvec3 *m_buffer;
   Camera *m_camera;
   Scene *m_scene;
