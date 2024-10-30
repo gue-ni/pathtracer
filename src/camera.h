@@ -12,11 +12,13 @@ class Camera
   int height() const;
   void set_position(const glm::dvec3& position);
   void set_forward(const glm::dvec3& forward);
+  void look_at(const glm::dvec3& position, const glm::dvec3& target);
 
- private:
+ //private:
   const int m_width, m_height;
-  const glm::dvec3 m_up;
-  glm::dvec3 m_position, m_forward, m_right;
+  const glm::dvec3 m_global_up;
+  glm::dvec3 m_position, m_forward, m_right, m_up;
+  double m_fov;
 
   void compute();
 };

@@ -1,8 +1,25 @@
 #include "geometry.h"
 #include <optional>
-#include "glm/geometric.hpp"
+#include <glm/glm.hpp>
+#include "glm/exponential.hpp"
 
-bool ray_vs_sphere(const Ray&, const Sphere&, float& t) { return false; }
+bool ray_vs_sphere(const Ray& r, const Sphere& s, float& t)
+{
+  glm::dvec3 m = r.origin - s.center;
+  double b = glm::dot(m, r.direction);
+  double c = glm::dot(m, m) - s.radius * s.radius;
+
+  if (c > 0.0 && b > 0.0) return false;
+  double discr = b * b - c;
+
+  if (discr < 0.0) return false;
+
+  t = -b - glm::sqrt(discr);
+  if (t < 0.0) t = 0.0;
+
+
+  return true;
+}
 
 bool ray_vs_triangle(const Ray&, const Triangle&, float& t) { return false; }
 
