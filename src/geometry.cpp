@@ -70,7 +70,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = (surface.point - sphere.center) / sphere.radius;
-        surface.material = material;
+        surface.material = material.get();
         return surface;
       } else {
         return std::nullopt;

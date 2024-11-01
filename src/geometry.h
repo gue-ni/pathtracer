@@ -5,6 +5,7 @@
 #include "material.h"
 #include "util.h"
 #include <optional>
+#include <memory>
 
 struct Intersection {
   bool hit;
@@ -35,7 +36,7 @@ struct Primitive {
     Sphere sphere;
     Triangle triangle;
   };
-  Material* material = nullptr;
+  std::shared_ptr<Material> material = nullptr;
 
   std::optional<Intersection> intersect(const Ray&) const;
 };

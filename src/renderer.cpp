@@ -59,6 +59,7 @@ void Renderer::render(int samples, int max_bounce)
 {
   double sample_weight = 1.0 / double(samples);
 
+#pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 #if PRINT_PROGRESS
     printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);

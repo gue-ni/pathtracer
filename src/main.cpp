@@ -16,7 +16,7 @@ std::unique_ptr<Scene> test_scene()
     primitive.type = Primitive::SPHERE;
     primitive.sphere.center = glm::dvec3(0.0, .75, -4.0);
     primitive.sphere.radius = 1.0;
-    primitive.material = new Material(glm::dvec3(0.77, 0.0, 0.0));
+    primitive.material = std::make_shared<Material>(glm::dvec3(0.77, 0.0, 0.0));
     scene->primitives.push_back(primitive);
   }
 #endif
@@ -27,7 +27,7 @@ std::unique_ptr<Scene> test_scene()
     primitive.type = Primitive::SPHERE;
     primitive.sphere.center = glm::dvec3(0.0, -5000.0, -4.0);
     primitive.sphere.radius = 5000.0;
-    primitive.material = new Material(glm::dvec3(0.77));
+    primitive.material = std::make_shared<Material>(glm::dvec3(0.77));
     scene->primitives.push_back(primitive);
   }
 #endif
@@ -36,9 +36,9 @@ std::unique_ptr<Scene> test_scene()
     // light
     Primitive primitive;
     primitive.type = Primitive::SPHERE;
-    primitive.sphere.center = glm::dvec3(0.0, 20.0, -4.0);
-    primitive.sphere.radius = 15.0;
-    primitive.material = new Material(glm::dvec3(0.99), glm::dvec3(0.99) * 12.0);
+    primitive.sphere.center = glm::dvec3(2.0, 10.0, -4.0);
+    primitive.sphere.radius = 5.0;
+    primitive.material = std::make_shared<Material>(glm::dvec3(0.99), glm::dvec3(0.99) * 1.0);
     scene->primitives.push_back(primitive);
   }
 #endif
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   camera->set_position(glm::dvec3(0, 1, 0));
 
   Renderer renderer(camera.get(), scene.get());
-  renderer.render(8, 2);
+  renderer.render(64, 3);
   renderer.save_image("result.png");
   return 0;
 }

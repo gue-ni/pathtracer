@@ -28,6 +28,7 @@ Intersection Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
+  // sky
   double a = 0.5 * (r.direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 }
