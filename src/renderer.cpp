@@ -10,10 +10,13 @@
 #include "stb_image_write.h"
 
 #define PRINT_PROGRESS 0
+#define DEBUG_NORMAL   0
 
 using namespace std::numbers;
 
-double random_double() { return (double)rand() / ((double)RAND_MAX + 1); }
+static double random_double() { return (double)rand() / ((double)RAND_MAX + 1); }
+
+static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 static glm::dvec3 random_unit_vector()
 {
@@ -39,6 +42,8 @@ static glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
     return -unit_vector;
   }
 }
+
+static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
 
 Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
 {
@@ -78,35 +83,31 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 
   if (!surface.hit) {
     return m_scene->background(ray);
+  } else {
+#if DEBUG_NORMAL
+    return normal_as_color(surface.normal);
+#endif
   }
 
   Material* material = surface.material;
   glm::dvec3 albedo = material->albedo;
   glm::dvec3 emitted = material->radiance;
 
-  if (depth == 0) {
+  if (depth <= 0) {
     return glm::vec3(0);
-    // return material->albedo;
   }
 
-  Ray scatter;
-  // scatter.origin = surface.point + surface.normal * 1e-8;
-  scatter.origin = surface.point;
-  scatter.direction = uniform_hemisphere_sampling(surface.normal);
+  Ray scattered;
+  scattered.origin = surface.point;
+  scattered.direction = uniform_hemisphere_sampling(surface.normal);
 
   double pdf = 1.0 / (2.0 * pi);
-  double cos_theta = glm::max(glm::dot(surface.normal, scatter.direction), 0.0);
+  double cos_theta = glm::max(glm::dot(surface.normal, scattered.direction), 0.0);
 
-  glm::dvec3 indirect = trace_ray(scatter, depth - 1);
+  glm::dvec3 indirect = trace_ray(scattered, depth - 1);
 
-#if 1
   return emitted + (albedo / pi) * indirect * cos_theta / pdf;
-#else
-  return emitted + (albedo / pi);
-#endif
 }
-
-uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 void Renderer::save_image(const std::filesystem::path& path)
 {

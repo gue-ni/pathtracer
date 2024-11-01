@@ -9,7 +9,7 @@
 std::unique_ptr<Scene> test_scene()
 {
   auto scene = std::make_unique<Scene>();
-
+#if 1
   {
     // sphere
     Primitive primitive;
@@ -19,6 +19,8 @@ std::unique_ptr<Scene> test_scene()
     primitive.material = new Material(glm::dvec3(0.77, 0.0, 0.0));
     scene->primitives.push_back(primitive);
   }
+#endif
+#if 1
   {
     // base
     Primitive primitive;
@@ -28,6 +30,8 @@ std::unique_ptr<Scene> test_scene()
     primitive.material = new Material(glm::dvec3(0.77));
     scene->primitives.push_back(primitive);
   }
+#endif
+#if 0
   {
     // light
     Primitive primitive;
@@ -37,7 +41,7 @@ std::unique_ptr<Scene> test_scene()
     primitive.material = new Material(glm::dvec3(0.99), glm::dvec3(0.99) * 12.0);
     scene->primitives.push_back(primitive);
   }
-
+#endif
   return scene;
 }
 

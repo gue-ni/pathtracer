@@ -2,9 +2,11 @@
 #include <cstdio>
 #include <optional>
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
 #include "glm/exponential.hpp"
 
-bool ray_vs_sphere(const Ray& r, const Sphere& s, float& t)
+bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
 {
   glm::dvec3 m = r.origin - s.center;
   double b = glm::dot(m, r.direction);
@@ -24,8 +26,9 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, float& t)
   return true;
 }
 
-#if 0
-bool ray_vs_sphere_v2(const Ray& r, const Sphere& s)
+
+
+bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t)
 {
   auto oc = s.center - r.origin;
   auto a = glm::length2(r.direction);
@@ -39,34 +42,34 @@ bool ray_vs_sphere_v2(const Ray& r, const Sphere& s)
 
   // Find the nearest root that lies in the acceptable range.
   auto root = (h - sqrtd) / a;
-  if (!ray_t.surrounds(root)) {
+  if (!ti.surrounds(root)) {
     root = (h + sqrtd) / a;
-    if (!ray_t.surrounds(root)) return false;
+    if (!ti.surrounds(root)) return false;
   }
 
-  rec.t = root;
-  rec.p = r.at(rec.t);
-  vec3 outward_normal = (rec.p - center) / radius;
-  rec.set_face_normal(r, outward_normal);
-  rec.mat = mat;
+  // rec.t = root;
+  // rec.p = r.at(rec.t);
+  // vec3 outward_normal = (rec.p - center) / radius;
+  // rec.set_face_normal(r, outward_normal);
+  // rec.mat = mat;
 
+  t = root;
   return true;
 }
-#endif
 
-bool ray_vs_triangle(const Ray&, const Triangle&, float& t) { return false; }
+bool ray_vs_triangle(const Ray&, const Triangle&, double& t) { return false; }
 
 std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 {
-  float t;
+  double t;
   switch (type) {
     case SPHERE: {
-      if (ray_vs_sphere(ray, sphere, t)) {
+      if (ray_vs_sphere_v2(ray, sphere, Interval<double>(0.001, 1e9), t)) {
         Intersection surface;
         surface.hit = true;
         surface.t = t;
         surface.point = ray.point_at(t);
-        surface.normal = glm::normalize(surface.point - sphere.center);
+        surface.normal = (surface.point - sphere.center) / sphere.radius;
         surface.material = material;
         return surface;
       } else {
