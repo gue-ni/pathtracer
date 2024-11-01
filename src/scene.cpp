@@ -60,7 +60,7 @@ glm::dvec3 Scene::trace_ray(const Ray& ray, int depth)
   Intersection surface = find_intersection(ray);
 
   if (!surface.hit) {
-    return glm::dvec3(0);
+    return background(ray);
   }
 
   Material* material = surface.material;
