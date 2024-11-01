@@ -55,6 +55,8 @@ Intersection Scene::find_intersection(const Ray& ray)
   return closest;
 }
 
+glm::dvec3 Scene::background(const Ray&) { return glm::dvec3(0.0); }
+
 glm::dvec3 Scene::trace_ray(const Ray& ray, int depth)
 {
   Intersection surface = find_intersection(ray);
@@ -69,11 +71,11 @@ glm::dvec3 Scene::trace_ray(const Ray& ray, int depth)
 
   if (depth == 0) {
     return glm::vec3(0);
-    //return material->albedo;
+    // return material->albedo;
   }
 
   Ray scatter;
-  //scatter.origin = surface.point + surface.normal * 1e-8;
+  // scatter.origin = surface.point + surface.normal * 1e-8;
   scatter.origin = surface.point;
   scatter.direction = uniform_hemisphere_sampling(surface.normal);
 
