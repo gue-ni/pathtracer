@@ -15,5 +15,6 @@ class Scene
   std::vector<Primitive> primitives;
 
   private:
-  Intersection find_intersection(const Ray& ray);
+  Intersection find_intersection(const Ray&);
+  glm::dvec3 background(const Ray&);
 };
