@@ -9,12 +9,9 @@
 class Scene
 {
  public:
-  Scene();
-  glm::dvec3 trace_ray(const Ray &ray, int depth);
-
   std::vector<Primitive> primitives;
 
-  private:
+  Scene();
   Intersection find_intersection(const Ray&);
   glm::dvec3 background(const Ray&);
 };

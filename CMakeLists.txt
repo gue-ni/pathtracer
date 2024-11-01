@@ -26,7 +26,7 @@ if(OPENMP_FOUND)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(renderer
+add_executable(pt
   "src/main.cpp"
   "src/camera.cpp"
   "src/geometry.cpp"
@@ -37,4 +37,4 @@ add_executable(renderer
   "src/kdtree.cpp"
 )
 
-target_include_directories(renderer PUBLIC "${glm_SOURCE_DIR}")
+target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}")

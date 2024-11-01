@@ -11,13 +11,38 @@
 
 #define PRINT_PROGRESS 0
 
-Renderer::Renderer(Camera *camera, Scene *scene) : m_camera(camera), m_scene(scene)
+using namespace std::numbers;
+
+double random_double() { return (double)rand() / ((double)RAND_MAX + 1); }
+
+static glm::dvec3 random_unit_vector()
+{
+  // static std::random_device rd;
+  // static std::mt19937 gen(rd());
+  // std::uniform_real_distribution<double> dist(0.0f, 1.0f);
+  double theta = random_double() * 2.0f * pi;
+  double phi = std::acos(1.0f - 2.0f * random_double());
+
+  double x = std::sin(phi) * std::cos(theta);
+  double y = std::sin(phi) * std::sin(theta);
+  double z = std::cos(phi);
+
+  return glm::dvec3(x, y, z);
+}
+
+static glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
+{
+  glm::dvec3 unit_vector = random_unit_vector();
+  if (glm::dot(unit_vector, normal) > 0.0) {
+    return unit_vector;
+  } else {
+    return -unit_vector;
+  }
+}
+
+Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
-  // std::cout << "global up: " << m_camera->m_global_up << std::endl;
-  // std::cout << "forward:   " << m_camera->m_forward << std::endl;
-  // std::cout << "up:        " << m_camera->m_up << std::endl;
-  // std::cout << "right:     " << m_camera->m_right << std::endl;
 }
 
 Renderer::~Renderer()
@@ -39,7 +64,7 @@ void Renderer::render(int samples, int max_bounce)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        color += m_scene->trace_ray(ray, max_bounce);
+        color += trace_ray(ray, max_bounce);
       }
 
       m_buffer[y * m_camera->width() + x] = color * sample_weight;
@@ -47,9 +72,43 @@ void Renderer::render(int samples, int max_bounce)
   }
 }
 
+glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
+{
+  Intersection surface = m_scene->find_intersection(ray);
+
+  if (!surface.hit) {
+    return m_scene->background(ray);
+  }
+
+  Material* material = surface.material;
+  glm::dvec3 albedo = material->albedo;
+  glm::dvec3 emitted = material->radiance;
+
+  if (depth == 0) {
+    return glm::vec3(0);
+    // return material->albedo;
+  }
+
+  Ray scatter;
+  // scatter.origin = surface.point + surface.normal * 1e-8;
+  scatter.origin = surface.point;
+  scatter.direction = uniform_hemisphere_sampling(surface.normal);
+
+  double pdf = 1.0 / (2.0 * pi);
+  double cos_theta = glm::max(glm::dot(surface.normal, scatter.direction), 0.0);
+
+  glm::dvec3 indirect = trace_ray(scatter, depth - 1);
+
+#if 1
+  return emitted + (albedo / pi) * indirect * cos_theta / pdf;
+#else
+  return emitted + (albedo / pi);
+#endif
+}
+
 uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
-void Renderer::save_image(const std::filesystem::path &path)
+void Renderer::save_image(const std::filesystem::path& path)
 {
   std::vector<unsigned char> pixels;
 
