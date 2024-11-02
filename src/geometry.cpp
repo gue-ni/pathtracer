@@ -56,6 +56,7 @@ bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti,
   return true;
 }
 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution.html
 bool ray_vs_triangle(const Ray& r, const Triangle& tri, const Interval<double>& ti, double& t)
 {
   // Compute the plane's normal

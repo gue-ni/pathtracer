@@ -5,7 +5,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define PRINT_PROGRESS 0
+#define PRINT_PROGRESS 1
 #define DEBUG_NORMAL   0
 
 using namespace std::numbers;

@@ -103,8 +103,9 @@ int main(int argc, char** argv)
 
   fprintf(stderr, "Render time: %dm%.3fs\n", minutes, seconds);
 
-  std::string filename = "render_" + std::to_string(samples_per_pixel) + "_" + std::to_string(max_bounces) + ".png";
   renderer.save_image("result.png");
+
+  std::string filename = "render_" + std::to_string(samples_per_pixel) + "s_" + std::to_string(max_bounces) + "b.png";
   renderer.save_image(filename);
   return 0;
 }
