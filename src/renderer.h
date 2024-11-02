@@ -2,9 +2,13 @@
 
 #include <filesystem>
 #include <memory>
+#include <iostream>
 
 #include "camera.h"
-#include "glm/fwd.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/io.hpp>
+#include <glm/glm.hpp>
+
 #include "scene.h"
 
 class Renderer
@@ -20,5 +24,4 @@ class Renderer
   glm::dvec3 *m_buffer;
   Camera *m_camera;
   Scene *m_scene;
-
 };

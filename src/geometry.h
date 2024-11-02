@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glm/geometric.hpp"
 #include "glm/glm.hpp"
 #include "ray.h"
 #include "material.h"
@@ -18,25 +19,38 @@ struct Intersection {
 struct Sphere {
   glm::dvec3 center;
   double radius;
+  Sphere(const glm::dvec3& c, double r) : center(c), radius(r) {}
 };
 
 bool ray_vs_sphere(const Ray&, const Sphere&, double& t);
 bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t);
 
+// vertex order is counter-clockwise
 struct Triangle {
   glm::dvec3 v0, v1, v2;
+  Triangle()  {}
+  Triangle(const glm::dvec3& _v0, const glm::dvec3& _v1, const glm::dvec3& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+  glm::dvec3 normal() const
+  {
+    auto v0v1 = v1 - v0;
+    auto v0v2 = v2 - v0;
+    auto normal = glm::cross(v0v1, v0v2);  // N
+    return glm::normalize(normal);
+  }
 };
 
 bool ray_vs_triangle(const Ray&, const Triangle&, const Interval<double>& ti, double& t);
 
 struct Primitive {
   enum Type : uint8_t { SPHERE, TRIANGLE };
-  Type type = SPHERE;
-  union {
+  const Type type;
+  const union {
     Sphere sphere;
     Triangle triangle;
   };
-  std::shared_ptr<Material> material = nullptr;
+  const std::shared_ptr<Material> material;
 
+  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m) {}
+  Primitive(const Triangle& t, const std::shared_ptr<Material>& m) : type(TRIANGLE), triangle(t), material(m) {}
   std::optional<Intersection> intersect(const Ray&) const;
 };

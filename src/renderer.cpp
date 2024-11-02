@@ -1,10 +1,6 @@
 #include "renderer.h"
 #include <memory>
-#include <iostream>
 #include <new>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/io.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
