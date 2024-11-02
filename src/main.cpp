@@ -15,15 +15,18 @@ std::unique_ptr<Scene> test_scene()
 
   auto red = std::make_shared<Material>(glm::dvec3(0.77, 0.0, 0.0));
   auto blue = std::make_shared<Material>(glm::dvec3(0.0, 0.0, 0.77));
-  auto green = std::make_shared<Material>(glm::dvec3(0.0, 0.77, 0.0));
   auto grey = std::make_shared<Material>(glm::dvec3(0.77));
+  auto orange = std::make_shared<Material>(rgb(255,116,33));
   auto emissive = std::make_shared<Material>(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0);
+  // pantone
+  auto tangerine_tango = std::make_shared<Material>(rgb(217,65,37));
+  auto honeysuckle = std::make_shared<Material>(rgb(230,99,134));
 
 #if 1
   {
     // sphere
-    Sphere sphere(glm::dvec3(-1.5, .75, -4.0), 1.0);
-    Primitive primitive(sphere, red);
+    Sphere sphere(glm::dvec3(-1.5, 1.2, -4.0), 1.0);
+    Primitive primitive(sphere, tangerine_tango);
     scene->add_primitive(primitive);
   }
 #endif
@@ -48,10 +51,10 @@ std::unique_ptr<Scene> test_scene()
     Triangle t3(vert[3], vert[4], vert[2]);
     Triangle t4(vert[1], vert[4], vert[3]);
 
-    scene->add_primitive(Primitive(t1, red));
-    scene->add_primitive(Primitive(t2, red));
-    scene->add_primitive(Primitive(t3, red));
-    scene->add_primitive(Primitive(t4, red));
+    scene->add_primitive(Primitive(t1, honeysuckle));
+    scene->add_primitive(Primitive(t2, honeysuckle));
+    scene->add_primitive(Primitive(t3, honeysuckle));
+    scene->add_primitive(Primitive(t4, honeysuckle));
   }
 #endif
 #if 1

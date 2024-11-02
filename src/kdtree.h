@@ -2,17 +2,24 @@
 
 #include <optional>
 #include <vector>
+#include "aabb.h"
 #include "geometry.h"
 
 struct KdNode {
+  AABB bb;
+  KdNode *left, *right;
+  std::optional<Intersection> intersect(const Ray&);
 };
 
 class KdTree
 {
  public:
-  std::optional<Intersection> find_intersection(const Ray&);
-  void add_primitive(const Primitive&);
+  KdTree(const std::vector<Primitive>& objects) : m_primitives(objects) {
+    construct();
+  }
+  std::optional<Intersection> intersect(const Ray&);
 
  private:
   std::vector<Primitive> m_primitives;
+  void construct();
 };

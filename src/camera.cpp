@@ -6,7 +6,7 @@
 Camera::Camera(int width, int height)
     : m_width(width),
       m_height(height),
-      m_global_up(0.0, 1.0, 0.0),
+      m_world_up(0.0, 1.0, 0.0),
       m_forward(0.0, 0.0, 1.0),
       m_position(0.0, 0.0, 0.0),
       m_fov(glm::radians(45.0))
@@ -17,11 +17,7 @@ Camera::Camera(int width, int height)
 Ray Camera::get_ray(int x, int y) const
 {
   glm::dvec2 image_size(m_width, m_height);
-
   glm::dvec2 uv = (glm::dvec2(x, y) / image_size) * 2.0 - 1.0;
-
-  Ray ray;
-  ray.origin = m_position;
 
   double aspect_ratio = image_size.x / image_size.y;
   double half_height = std::tan(m_fov / 2.0);
@@ -33,6 +29,8 @@ Ray Camera::get_ray(int x, int y) const
   glm::dvec3 target = m_position + m_forward;
   glm::dvec3 view_point = target + (width * m_right * uv.x) - (height * m_up * uv.y);
 
+  Ray ray;
+  ray.origin = m_position;
   ray.direction = glm::normalize(view_point - m_position);
   return ray;
 }
@@ -55,7 +53,7 @@ void Camera::set_forward(const glm::dvec3& forward)
 
 void Camera::compute()
 {
-  m_right = glm::cross(m_forward, m_global_up);
+  m_right = glm::cross(m_forward, m_world_up);
   m_up = glm::cross(m_right, m_forward);
 }
 

@@ -16,7 +16,7 @@ class Camera
 
  //private:
   const int m_width, m_height;
-  const glm::dvec3 m_global_up;
+  const glm::dvec3 m_world_up;
   glm::dvec3 m_position, m_forward, m_right, m_up;
   double m_fov;
 
