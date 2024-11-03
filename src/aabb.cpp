@@ -1,4 +1,5 @@
 #include "aabb.h"
+#include "geometry.h"
 #include "glm/fwd.hpp"
 
 AABB::AABB(const glm::dvec3& a, const glm::dvec3& b)
@@ -15,11 +16,8 @@ AABB::AABB(const Sphere& s)
 
 AABB::AABB(const Triangle& t)
 {
-  min = glm::dvec3(1e9), max = glm::dvec3(+1e9);
-  for (size_t i = 0; i < 3; i++) {
-    min = glm::min(min, t.vertex(i));
-    max = glm::max(max, t.vertex(i));
-  }
+  min = glm::min(glm::min(t.v0, t.v1), t.v2);
+  max = glm::max(glm::max(t.v0, t.v1), t.v2);
 }
 
 bool ray_vs_aabb(const Ray& r, const AABB& bb, Interval<double> ti)
