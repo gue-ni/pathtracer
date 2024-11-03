@@ -18,7 +18,7 @@ class Renderer
   ~Renderer();
   void render(int samples, int max_bounce);
   glm::dvec3 trace_ray(const Ray &ray, int depth);
-  void save_image(const std::filesystem::path &path);
+  void save_image(const char* path);
 
  private:
   glm::dvec3 *m_buffer;

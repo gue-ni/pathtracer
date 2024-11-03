@@ -140,4 +140,24 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   }
 }
 
-std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives) { return std::nullopt; }
+std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives)
+{
+  return std::nullopt;
+}
+
+std::optional<Intersection> closest(const std::optional<Intersection> a, const std::optional<Intersection> b)
+{
+  if (a.has_value() && b.has_value()) {
+    return (a.value().t < b.value().t) ? a : b;
+  }
+
+  if (a.has_value()) {
+    return a;
+  }
+
+  if (b.has_value()) {
+    return b;
+  }
+
+  return std::nullopt;
+}

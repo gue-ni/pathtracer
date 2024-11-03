@@ -36,6 +36,7 @@ add_executable(pt
   "src/material.cpp"
   "src/kdtree.cpp"
   "src/aabb.cpp"
+  "src/bvh.cpp"
 )
 
 target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}")

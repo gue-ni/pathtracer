@@ -114,7 +114,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
   return emitted + (albedo / pi) * indirect * cos_theta / pdf;
 }
 
-void Renderer::save_image(const std::filesystem::path& path)
+void Renderer::save_image(const char* path)
 {
   std::vector<unsigned char> pixels;
 
@@ -125,9 +125,8 @@ void Renderer::save_image(const std::filesystem::path& path)
     pixels.push_back(map_pixel(color.b));
   }
 
-  auto filepath = path.string();
-  if (stbi_write_png(filepath.c_str(), m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
-    fprintf(stdout, "Image '%s' saved successfully!\n", filepath.c_str());
+  if (stbi_write_png(path, m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
+    fprintf(stdout, "Image '%s' saved successfully!\n", path);
   } else {
     fprintf(stderr, "Failed to save image!\n");
   }

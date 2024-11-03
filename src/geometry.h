@@ -16,7 +16,10 @@ struct Intersection {
   glm::dvec3 point;
   glm::dvec3 normal;
   Material* material;
+  inline bool is_closer_than(const Intersection& other) const { return t < other.t; }
 };
+
+std::optional<Intersection> closest(const std::optional<Intersection> a, const std::optional<Intersection> b);
 
 struct Sphere {
   glm::dvec3 center;
@@ -58,11 +61,13 @@ struct Primitive {
     Triangle triangle;
   };
   const std::shared_ptr<Material> material;
-  const AABB bb;
+  const AABB bbox;
 
-  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m), bb(AABB(s)) {}
+  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m), bbox(AABB(s))
+  {
+  }
   Primitive(const Triangle& t, const std::shared_ptr<Material>& m)
-      : type(TRIANGLE), triangle(t), material(m), bb(AABB(t))
+      : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t))
   {
   }
   std::optional<Intersection> intersect(const Ray&) const;

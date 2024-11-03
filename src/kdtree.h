@@ -16,12 +16,12 @@ struct Node : public AABB {
 class KdTree
 {
  public:
-  KdTree(const std::vector<Primitive>& objects) : m_primitives(objects) { m_root = construct(); }
+  KdTree(const std::vector<Primitive>& objects);
   std::optional<Intersection> traverse(const Ray&);
 
  private:
   std::unique_ptr<Node> m_root;
   std::vector<Primitive> m_primitives;
 
-  std::unique_ptr<Node> construct();
+  std::unique_ptr<Node> construct(const std::vector<Primitive>& );
 };
