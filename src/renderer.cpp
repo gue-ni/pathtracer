@@ -8,7 +8,7 @@
 #define PRINT_PROGRESS 1
 #define DEBUG_NORMAL   0
 
-using namespace std::numbers;
+constexpr double pi = 3.14159265359;
 
 static double random_double() { return (double)rand() / ((double)RAND_MAX + 1); }
 
@@ -117,8 +117,9 @@ void Renderer::save_image(const std::filesystem::path& path)
     pixels.push_back(map_pixel(color.b));
   }
 
-  if (stbi_write_png(path.c_str(), m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
-    fprintf(stdout, "Image '%s' saved successfully!\n", path.c_str());
+  auto filepath = path.string();
+  if (stbi_write_png(filepath.c_str(), m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
+    fprintf(stdout, "Image '%s' saved successfully!\n", filepath.c_str());
   } else {
     fprintf(stderr, "Failed to save image!\n");
   }
