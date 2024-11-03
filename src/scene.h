@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <pthread.h>
 #include "bvh.h"
 #include "geometry.h"
 #include "material.h"
