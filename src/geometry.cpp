@@ -8,7 +8,10 @@
 #include <glm/gtx/norm.hpp>
 #include "glm/exponential.hpp"
 
+#define ENABLE_COUNTER 0
+#if ENABLE_COUNTER
 std::atomic<int> intersection_test_counter = 0;
+#endif
 
 bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
 {
@@ -109,7 +112,9 @@ bool ray_vs_triangle(const Ray& r, const Triangle& tri, const Interval<double>& 
 
 std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 {
+#if ENABLE_COUNTER
   intersection_test_counter++;
+#endif
   double t;
   Interval<double> ti(0.001, 1e9);
   switch (type) {
@@ -166,4 +171,9 @@ std::optional<Intersection> closest(const std::optional<Intersection> a, const s
   return std::nullopt;
 }
 
-void print_stats() { printf("Intersection Test Count: %d\n", intersection_test_counter.load()); }
+void print_stats()
+{
+#if ENABLE_COUNTER
+  printf("Intersection Test Count: %d\n", intersection_test_counter.load());
+#endif
+}
