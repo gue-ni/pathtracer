@@ -69,3 +69,5 @@ struct Primitive {
 };
 
 std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives);
+
+void print_stats();

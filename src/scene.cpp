@@ -26,7 +26,7 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
     }
   }
 
-  return closest;
+  return closest.hit ? std::optional<Intersection>(closest) : std::nullopt;
   #else
 
   assert(bvh != nullptr);

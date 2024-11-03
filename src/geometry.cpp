@@ -1,11 +1,14 @@
 #include "geometry.h"
 #include <cstdio>
 #include <optional>
+#include <atomic>
 #include <glm/glm.hpp>
 #include "glm/fwd.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include "glm/exponential.hpp"
+
+std::atomic<int> intersection_test_counter = 0;
 
 bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
 {
@@ -106,6 +109,7 @@ bool ray_vs_triangle(const Ray& r, const Triangle& tri, const Interval<double>& 
 
 std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 {
+  intersection_test_counter++;
   double t;
   Interval<double> ti(0.001, 1e9);
   switch (type) {
@@ -162,3 +166,4 @@ std::optional<Intersection> closest(const std::optional<Intersection> a, const s
   return std::nullopt;
 }
 
+void print_stats() { printf("Intersection Test Count: %d\n", intersection_test_counter.load()); }

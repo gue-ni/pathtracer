@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <memory>
 #include <iostream>
+#include <atomic>
 
 #include "camera.h"
 #define GLM_ENABLE_EXPERIMENTAL

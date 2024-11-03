@@ -108,6 +108,7 @@ int main(int argc, char** argv)
   seconds -= (minutes * 60);
 
   fprintf(stderr, "Render time: %dm%.3fs\n", minutes, seconds);
+  print_stats();
 
   renderer.save_image("latest_render.png");
 

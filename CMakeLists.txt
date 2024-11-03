@@ -34,7 +34,6 @@ add_executable(pt
   "src/renderer.cpp"
   "src/scene.cpp"
   "src/material.cpp"
-  "src/kdtree.cpp"
   "src/aabb.cpp"
   "src/bvh.cpp"
 )

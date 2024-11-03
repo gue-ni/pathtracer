@@ -8,6 +8,7 @@
 #include "ray.h"
 #include <glm/glm.hpp>
 #include <vector>
+#include <atomic>
 
 class Scene
 {
