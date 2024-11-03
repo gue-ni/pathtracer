@@ -19,11 +19,7 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
   if (discr < 0.0) return false;
 
   t = -b - glm::sqrt(discr);
-  if (t < 0.0) {
-    // actually this should not be happening
-    t = 0.0;
-  }
-
+  if (t < 0.0) t = 0.0;
   return true;
 }
 
@@ -143,3 +139,5 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
       return std::nullopt;
   }
 }
+
+std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives) { return std::nullopt; }

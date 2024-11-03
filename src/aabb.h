@@ -1,10 +1,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "geometry.h"
 #include "glm/common.hpp"
 #include "ray.h"
 #include "util.h"
+
+struct Sphere;
+struct Triangle;
 
 struct AABB {
   glm::dvec3 min;

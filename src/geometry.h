@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aabb.h"
 #include "glm/geometric.hpp"
 #include "glm/glm.hpp"
 #include "ray.h"
@@ -7,6 +8,7 @@
 #include "util.h"
 #include <optional>
 #include <memory>
+#include <vector>
 
 struct Intersection {
   bool hit;
@@ -56,8 +58,14 @@ struct Primitive {
     Triangle triangle;
   };
   const std::shared_ptr<Material> material;
+  const AABB bb;
 
-  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m) {}
-  Primitive(const Triangle& t, const std::shared_ptr<Material>& m) : type(TRIANGLE), triangle(t), material(m) {}
+  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m), bb(AABB(s)) {}
+  Primitive(const Triangle& t, const std::shared_ptr<Material>& m)
+      : type(TRIANGLE), triangle(t), material(m), bb(AABB(t))
+  {
+  }
   std::optional<Intersection> intersect(const Ray&) const;
 };
+
+std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives);
