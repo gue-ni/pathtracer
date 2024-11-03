@@ -15,12 +15,12 @@ std::unique_ptr<Scene> test_scene()
 
   auto red = std::make_shared<Material>(glm::dvec3(0.77, 0.0, 0.0));
   auto blue = std::make_shared<Material>(glm::dvec3(0.0, 0.0, 0.77));
-  auto grey = std::make_shared<Material>(glm::dvec3(0.77));
-  auto orange = std::make_shared<Material>(rgb(255,116,33));
-  auto emissive = std::make_shared<Material>(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0);
+  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
+  auto orange = std::make_shared<Material>(rgb(255, 116, 33));
+  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
   // pantone
-  auto tangerine_tango = std::make_shared<Material>(rgb(217,65,37));
-  auto honeysuckle = std::make_shared<Material>(rgb(230,99,134));
+  auto tangerine_tango = scene->add_material(Material(rgb(217, 65, 37)));
+  auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
 
 #if 1
   {
@@ -71,6 +71,9 @@ std::unique_ptr<Scene> test_scene()
     scene->add_primitive(p);
   }
 #endif
+
+
+  scene->compute();
   return scene;
 }
 

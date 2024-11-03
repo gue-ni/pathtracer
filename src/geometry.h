@@ -55,21 +55,16 @@ bool ray_vs_triangle(const Ray&, const Triangle&, const Interval<double>& ti, do
 
 struct Primitive {
   enum Type : uint8_t { SPHERE, TRIANGLE };
-  const Type type;
-  const union {
+  Type type;
+  union {
     Sphere sphere;
     Triangle triangle;
   };
-  const std::shared_ptr<Material> material;
-  const AABB bbox;
+  Material* material;
+  AABB bbox;
 
-  Primitive(const Sphere& s, const std::shared_ptr<Material>& m) : type(SPHERE), sphere(s), material(m), bbox(AABB(s))
-  {
-  }
-  Primitive(const Triangle& t, const std::shared_ptr<Material>& m)
-      : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t))
-  {
-  }
+  Primitive(const Sphere& s, Material* m) : type(SPHERE), sphere(s), material(m), bbox(AABB(s)) {}
+  Primitive(const Triangle& t, Material* m) : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t)) {}
   std::optional<Intersection> intersect(const Ray&) const;
 };
 

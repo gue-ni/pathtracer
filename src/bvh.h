@@ -23,8 +23,9 @@ class BVH
     std::optional<Intersection> intersect_primitives(const Ray&);
   };
 
+  const size_t split_threshold = 5;
   std::unique_ptr<Node> m_root;
   std::vector<Primitive> m_primitives;
 
-  std::unique_ptr<Node> construct();
+  std::unique_ptr<Node> construct(const std::vector<Primitive>::iterator& begin, const std::vector<Primitive>::iterator& end);
 };

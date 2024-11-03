@@ -116,7 +116,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = (surface.point - sphere.center) / sphere.radius;
-        surface.material = material.get();
+        surface.material = material;
         return surface;
       } else {
         return std::nullopt;
@@ -129,7 +129,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal();
-        surface.material = material.get();
+        surface.material = material;
         return surface;
       } else {
         return std::nullopt;
@@ -161,3 +161,4 @@ std::optional<Intersection> closest(const std::optional<Intersection> a, const s
 
   return std::nullopt;
 }
+

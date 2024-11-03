@@ -1,5 +1,7 @@
 #include "bvh.h"
+#include <memory>
 #include <optional>
+#include <algorithm>
 #include "aabb.h"
 #include "geometry.h"
 
@@ -42,16 +44,40 @@ std::optional<Intersection> BVH::Node::intersect_primitives(const Ray& ray)
   return closest;
 }
 
-BVH::BVH(const std::vector<Primitive>& primitives) : m_primitives(primitives) { m_root = construct(); }
+BVH::BVH(const std::vector<Primitive>& primitives) : m_primitives(primitives)
+{
+  m_root = construct(m_primitives.begin(), m_primitives.end());
+}
 
 std::optional<Intersection> BVH::traverse(const Ray& ray) { return m_root->intersect(ray); }
 
-std::unique_ptr<BVH::Node> BVH::construct()
+std::unique_ptr<BVH::Node> BVH::construct(const std::vector<Primitive>::iterator& begin,
+                                          const std::vector<Primitive>::iterator& end)
 {
-  // compute bbox
-  // split along axis
-  // sort primitives along split axis
-  // insert primitives into nodes
+  auto node = std::make_unique<BVH::Node>();
 
-  return nullptr;
+  // compute bbox
+  node->bbox = compute_bounding_volume(begin, end);
+
+  // split along axis
+  size_t split_axis = node->bbox.longest_axis();
+
+  size_t count = end - begin;
+
+  if (count > split_threshold) {
+    // sort primitives along split axis
+    auto heuristic = [split_axis](Primitive a, Primitive b) { return a.bbox.min[split_axis] < b.bbox.min[split_axis]; };
+    std::sort(begin, end, heuristic);
+
+    std::vector<Primitive>::iterator middle = begin + (count / 2);
+
+    node->left = construct(begin, middle);
+    node->right = construct(middle + 1, end);
+  } else {
+    // insert primitives into nodes
+    node->begin = begin;
+    node->end = end;
+  }
+
+  return node;
 }

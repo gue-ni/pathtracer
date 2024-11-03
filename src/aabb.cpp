@@ -28,14 +28,15 @@ AABB merge(const AABB& a, const AABB& b)
   return bb;
 }
 
-AABB bounding_volume(const std::vector<Primitive>& objects)
+AABB compute_bounding_volume(const std::vector<Primitive>::const_iterator& begin,
+                     const std::vector<Primitive>::const_iterator& end)
 {
   AABB bbox;
   bbox.min = glm::dvec3(+1e9);
   bbox.max = glm::dvec3(-1e9);
-  for (const Primitive& o : objects) {
-    bbox.min = glm::min(bbox.min, o.bbox.min);
-    bbox.max = glm::max(bbox.max, o.bbox.max);
+  for (auto it = begin; it != end; it++) {
+    bbox.min = glm::min(bbox.min, it->bbox.min);
+    bbox.max = glm::max(bbox.max, it->bbox.max);
   }
 
   return bbox;

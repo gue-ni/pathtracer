@@ -2,7 +2,9 @@
 #pragma once
 
 #include <pthread.h>
+#include "bvh.h"
 #include "geometry.h"
+#include "material.h"
 #include "ray.h"
 #include <glm/glm.hpp>
 #include <vector>
@@ -11,7 +13,9 @@ class Scene
 {
  public:
   Scene();
+  void compute();
   void add_primitive(const Primitive& p) { primitives.push_back(p); }
+  Material* add_material(const Material& m);
 
   template <typename It>
   void add_primitives(It begin, It end)
@@ -21,9 +25,11 @@ class Scene
     }
   }
 
-  Intersection find_intersection(const Ray&);
+  std::optional<Intersection> find_intersection(const Ray&);
   glm::dvec3 background(const Ray&);
 
  private:
   std::vector<Primitive> primitives;
+  std::unique_ptr<BVH> bvh;
+  std::vector<Material> materials;
 };

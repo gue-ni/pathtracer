@@ -2,6 +2,7 @@
 #include <memory>
 #include <new>
 #include <random>
+#include "geometry.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -84,9 +85,9 @@ void Renderer::render(int samples, int max_bounce)
 
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 {
-  Intersection surface = m_scene->find_intersection(ray);
+  auto possible_hit = m_scene->find_intersection(ray);
 
-  if (!surface.hit) {
+  if (!possible_hit.has_value()) {
     return m_scene->background(ray);
   } else {
 #if DEBUG_NORMAL
@@ -94,6 +95,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 #endif
   }
 
+  Intersection surface = possible_hit.value();
   Material* material = surface.material;
   glm::dvec3 albedo = material->albedo;
   glm::dvec3 emitted = material->radiance;

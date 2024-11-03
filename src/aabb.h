@@ -18,10 +18,27 @@ struct AABB {
   AABB(const glm::dvec3& a, const glm::dvec3& b);
   AABB(const Sphere&);
   AABB(const Triangle&);
+
+  inline glm::dvec3 size() const { return max - min; }
+
+  inline size_t longest_axis() const
+  {
+    auto s = size();
+
+    if (s.y >= s.x && s.y >= s.z) {
+      return 1;
+    }
+    if (s.z >= s.x && s.z >= s.y) {
+      return 2;
+    }
+
+    return 0;
+  }
 };
 
 AABB merge(const AABB& a, const AABB& b);
 
-AABB bounding_volume(const std::vector<Primitive>& objects);
+AABB compute_bounding_volume(const std::vector<Primitive>::const_iterator& begin,
+                             const std::vector<Primitive>::const_iterator& end);
 
 bool ray_vs_aabb(const Ray& r, const AABB& bb, Interval<double> ti);
