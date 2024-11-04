@@ -72,7 +72,7 @@ std::unique_ptr<BVH::Node> BVH::construct(const std::vector<Primitive>::iterator
     std::vector<Primitive>::iterator middle = begin + (count / 2);
 
     node->left = construct(begin, middle);
-    node->right = construct(middle + 1, end);
+    node->right = construct(middle, end);
   } else {
     // insert primitives into nodes
     node->begin = begin;

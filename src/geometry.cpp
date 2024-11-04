@@ -9,7 +9,7 @@
 #include <glm/gtx/norm.hpp>
 #include "glm/exponential.hpp"
 
-#define ENABLE_COUNTER 0
+#define ENABLE_COUNTER 1
 #if ENABLE_COUNTER
 std::atomic<int> intersection_test_counter = 0;
 #endif
