@@ -25,12 +25,12 @@ jobs:
     - name: Render
       run: |
         ${{github.workspace}}/build/pt
-        tar -czvf artefact.$(date +%s).tar.gz ${{github.workspace}}/*.png
+        zip artefact.$(date +%s).zip ${{github.workspace}}/*.png
 
     - name: Copy artefact to server
       run: |
         echo "${{ secrets.KEY }}" > ${{github.workspace}}/tmp-ssh-key
-        scp -P ${{ secrets.PORT }} -i ${{github.workspace}}/tmp-ssh-key ${{github.workspace}}/*.tar.gz ${{ secrets.USER }}@${{ secrets.HOST }}:/var/www/private/files/render-artefacts
+        scp -P ${{ secrets.PORT }} -i ${{github.workspace}}/tmp-ssh-key ${{github.workspace}}/*.zip ${{ secrets.USER }}@${{ secrets.HOST }}:/var/www/private/files/render-artefacts
 
 
 
