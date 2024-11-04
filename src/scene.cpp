@@ -59,7 +59,10 @@ void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const s
 
 void Scene::compute_bvh() { bvh = std::make_unique<BVH>(primitives); }
 
-glm::dvec3 Scene::center() const { return bvh->root()->bbox.center(); }
+glm::dvec3 Scene::center() const
+{
+  return m_center;
+}
 
 struct Vertex {
   glm::dvec3 pos;

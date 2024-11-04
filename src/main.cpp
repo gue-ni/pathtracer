@@ -61,7 +61,7 @@ std::unique_ptr<Scene> test_scene_1()
     scene->add_primitive(primitive);
   }
 #endif
-#if 1
+#if 0
   {
     // light
     Primitive p(Sphere(glm::dvec3(3.0, 5.5, 0.0), 1.5), emissive);
@@ -82,23 +82,28 @@ std::unique_ptr<Scene> test_scene_2()
 
 #if 1
 #if _WIN32
-  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/suzanne.obj");
+  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/bunny.obj");
 #else
   auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
 #endif
   scene->add_primitives(mesh.begin(), mesh.end());
+
+  AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
+  std::cout << "Size: " << bbox.size() << ", Center: " << bbox.center() << std::endl;
+  scene->set_center(bbox.center());
+  scene->set_focus_size(bbox.size());
 #endif
 #if 1
   {
     // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5 - 2, 0.0), 1e5), grey);
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5, 0.0), 1e5), grey);
     scene->add_primitive(primitive);
   }
 #endif
 #if 1
   {
     // light
-    Primitive p(Sphere(glm::dvec3(2, 5, 0), 1.5), emissive);
+    Primitive p(Sphere(glm::dvec3(2, 15, 0), 5), emissive);
     scene->add_primitive(p);
   }
 #endif
@@ -125,9 +130,11 @@ int main(int argc, char** argv)
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  auto center = scene->center();
-  std::cout << "Scene center: " << center << std::endl;
-  camera->look_at(glm::dvec3(0, 1, 2), glm::dvec3(0, .5, 0));
+
+  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.5), scene->center());
+  //camera->look_at(glm::dvec3(0,2, 5), glm::dvec3(0,2,0));
+
+  //camera->look_at(glm::dvec3(8,4,0), glm::dvec3(0, 4, 0));
 
   Renderer renderer(camera.get(), scene.get());
 

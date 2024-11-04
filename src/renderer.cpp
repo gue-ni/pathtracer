@@ -1,7 +1,4 @@
 #include "renderer.h"
-#include <memory>
-#include <new>
-#include <random>
 #include "geometry.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
