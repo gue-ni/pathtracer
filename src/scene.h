@@ -23,7 +23,7 @@ class Scene
   std::optional<Intersection> find_intersection(const Ray&);
   glm::dvec3 background(const Ray&);
   glm::dvec3 center() const;
-
+  size_t primitive_count() const { return primitives.size(); }
 
  private:
   std::vector<Primitive> primitives;

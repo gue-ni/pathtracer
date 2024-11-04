@@ -1,6 +1,6 @@
 newmtl white
 Ka 0 0 0
-Kd 1 1 1
+Kd 0.77 0.77 0.77
 Ks 0 0 0
 
 newmtl red
@@ -21,4 +21,10 @@ Ks 0 0 0
 newmtl light
 Ka 20 20 20
 Kd 1 1 1
+Ks 0 0 0
+
+
+newmtl yellow
+Ka 0 0 0
+Kd 1 1 0
 Ks 0 0 0

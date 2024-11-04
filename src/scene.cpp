@@ -15,7 +15,7 @@ Scene::Scene() : bvh(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
-#define ENABLE_BVH 0
+#define ENABLE_BVH 1
 #if ENABLE_BVH == 0
   Intersection closest;
   closest.hit = false;
@@ -88,19 +88,19 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   auto& attrib = reader.GetAttrib();
   auto& shapes = reader.GetShapes();
-  const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
+  const std::vector<tinyobj::material_t>& mtls = reader.GetMaterials();
 
-  Material* default_material = add_material(Material(glm::dvec3(1, 0, 0)));
+  Material* default_material = add_material(Material(glm::dvec3(1, 1, 0)));
 
   // Print out vertices, shapes, and materials info
   std::cout << "# of vertices: " << (attrib.vertices.size() / 3) << std::endl;
   std::cout << "# of shapes: " << shapes.size() << std::endl;
-  std::cout << "# of materials: " << materials.size() << std::endl;
+  std::cout << "# of materials: " << mtls.size() << std::endl;
 
   auto offset = material_count;
 
 #if 1
-  for (const tinyobj::material_t& m : materials) {
+  for (const tinyobj::material_t& m : mtls) {
     Material material;
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.radiance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
@@ -155,9 +155,13 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     auto v2 = vertices[i * 3 + 2].pos;
     Triangle tri(v0, v1, v2);
 
-    int id = offset + vertices[i * 3].material_id;
-    Material* m = &this->materials[id];
-    triangles.push_back(Primitive(tri, m));
+    if (mtls.empty()) {
+      triangles.push_back(Primitive(tri, default_material));
+    } else {
+      int id = offset + vertices[i * 3].material_id;
+      Material* m = &this->materials[id];
+      triangles.push_back(Primitive(tri, m));
+    }
   }
 
 #if 0

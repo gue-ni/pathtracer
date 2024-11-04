@@ -11,7 +11,7 @@ v 2.000000 2.000000 0.000000
 # 8 vertices
 
 g front cube
-usemtl white
+usemtl yellow
 f 1 2 3 4
 # two white spaces between 'back' and 'cube'
 g back  cube

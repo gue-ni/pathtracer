@@ -77,11 +77,29 @@ std::unique_ptr<Scene> test_scene_2()
 {
   auto scene = std::make_unique<Scene>();
 
+  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
+  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
+
 #if 1
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cube.obj");
+  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/suzanne.obj");
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 1
+  {
+    // base
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5 - 5, 0.0), 1e5), grey);
+    scene->add_primitive(primitive);
+  }
+#endif
+#if 1
+  {
+    // light
+    Primitive p(Sphere(glm::dvec3(0.0, 5, 0.0), 1.5), emissive);
+    scene->add_primitive(p);
+  }
+#endif
+
+#if 0
   {
     auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
 
@@ -138,9 +156,12 @@ int main(int argc, char** argv)
   fprintf(stdout, "Samples Per Pixel: %d, Max Bounce: %d\n", samples_per_pixel, max_bounces);
 
   std::unique_ptr<Scene> scene = test_scene_2();
+  std::cout << "Primtive Count: " << scene->primitive_count() << std::endl;
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->look_at(glm::dvec3(-5, 5, 5), scene->center());
+  auto center = scene->center();
+  std::cout << "Scene center: " << center << std::endl;
+  camera->look_at(glm::dvec3(1, 2, 5), glm::dvec3(0, 0, 0));
 
   Renderer renderer(camera.get(), scene.get());
 
