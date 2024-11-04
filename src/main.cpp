@@ -84,14 +84,14 @@ std::unique_ptr<Scene> test_scene_2()
 #if _WIN32
   auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/suzanne.obj");
 #else
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/suzanne.obj");
+  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
 #endif
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 1
   {
     // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5 - 5, 0.0), 1e5), grey);
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5 - 2, 0.0), 1e5), grey);
     scene->add_primitive(primitive);
   }
 #endif
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
   auto center = scene->center();
   std::cout << "Scene center: " << center << std::endl;
-  camera->look_at(glm::dvec3(0.5, 1.2, 2.5), glm::dvec3(0, 0, 0));
+  camera->look_at(glm::dvec3(0, 1, 2), glm::dvec3(0, .5, 0));
 
   Renderer renderer(camera.get(), scene.get());
 
