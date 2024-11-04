@@ -7,6 +7,7 @@
 #include "ray.h"
 #include <glm/glm.hpp>
 #include <vector>
+#include <array>
 #include <atomic>
 
 class Scene
@@ -31,5 +32,6 @@ class Scene
  private:
   std::vector<Primitive> primitives;
   std::unique_ptr<BVH> bvh;
-  std::vector<Material> materials;
+  size_t material_count = 0;
+  std::array<Material, 256> materials;
 };

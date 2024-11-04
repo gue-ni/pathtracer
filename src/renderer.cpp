@@ -91,7 +91,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
     return m_scene->background(ray);
   } else {
 #if DEBUG_NORMAL
-    return normal_as_color(surface.normal);
+    return normal_as_color(possible_hit.value().normal);
 #endif
   }
 

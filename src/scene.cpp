@@ -1,7 +1,6 @@
 
 #include "scene.h"
 #include <memory>
-#include <numbers>
 #include "aabb.h"
 #include "geometry.h"
 #include <glm/glm.hpp>
@@ -11,7 +10,8 @@ Scene::Scene() : bvh(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
-  #if 0
+#define ENABLE_BVH 1
+#if ENABLE_BVH == 0
   Intersection closest;
   closest.hit = false;
   closest.t = 1e9;
@@ -27,13 +27,10 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
   }
 
   return closest.hit ? std::optional<Intersection>(closest) : std::nullopt;
-  #else
-
+#else
   assert(bvh != nullptr);
-
   return bvh->traverse(ray);
-
-  #endif
+#endif
 }
 
 glm::dvec3 Scene::background(const Ray& r)
@@ -45,8 +42,9 @@ glm::dvec3 Scene::background(const Ray& r)
 
 Material* Scene::add_material(const Material& m)
 {
-  materials.push_back(m);
-  return &materials[materials.size() - 1];
+  assert(material_count < materials.size());
+  materials[material_count] = m;
+  return &materials[material_count++];
 }
 
 void Scene::compute() { bvh = std::make_unique<BVH>(primitives); }
