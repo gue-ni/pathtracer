@@ -1,5 +1,5 @@
-# Blender MTL File: 'None'
-# Material Count: 5
+# Blender MTL File: 'cornell_box.blend'
+# Material Count: 4
 
 newmtl Green
 Ns 225.000000
@@ -11,22 +11,12 @@ Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl Material
-Ns 323.999994
-Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.003599 0.011041
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.450000
-d 1.000000
-illum 2
-
-newmtl Material.001
+newmtl Red
 Ns 225.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
+Kd 0.800000 0.003534 0.012493
 Ks 0.500000 0.500000 0.500000
-Ke 20.000000 18.390105 9.251369
+Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
