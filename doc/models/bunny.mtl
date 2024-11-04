@@ -1,7 +1,7 @@
 # Blender MTL File: 'None'
 # Material Count: 1
 
-newmtl Scene_-_Root
+newmtl bunny_material
 Ns 308.716640
 Ka 1.000000 1.000000 1.000000
 Kd 1.000000 1.000000 1.000000

@@ -2,7 +2,6 @@
 #include "aabb.h"
 #include "camera.h"
 #include "geometry.h"
-#include "material.h"
 #include "renderer.h"
 #include "scene.h"
 #include <chrono>
@@ -86,30 +85,68 @@ std::unique_ptr<Scene> test_scene_2()
 #else
   auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
 #endif
-  scene->add_primitives(mesh.begin(), mesh.end());
 
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
   std::cout << "Size: " << bbox.size() << ", Center: " << bbox.center() << std::endl;
+
   scene->set_center(bbox.center());
   scene->set_focus_size(bbox.size());
+  scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 1
   {
     // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5, 0.0), 1e5), grey);
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), grey);
     scene->add_primitive(primitive);
   }
 #endif
-#if 1
+#if 0
   {
     // light
-    Primitive p(Sphere(glm::dvec3(2, 15, 0), 5), emissive);
+    Primitive p(Sphere(glm::dvec3(2, bbox.size().y * 1.5, 0), 5), emissive);
     scene->add_primitive(p);
   }
 #endif
 
   scene->compute_bvh();
   return scene;
+}
+
+std::pair <std::unique_ptr<Scene>, std::unique_ptr<Camera> test_scene_3()
+{
+  auto scene = std::make_unique<Scene>();
+
+  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
+  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
+
+#if 1
+#if _WIN32
+  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/bunny.obj");
+#else
+  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
+#endif
+
+  AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
+  std::cout << "Size: " << bbox.size() << ", Center: " << bbox.center() << std::endl;
+
+  scene->set_center(bbox.center());
+  scene->set_focus_size(bbox.size());
+  scene->add_primitives(mesh.begin(), mesh.end());
+#endif
+#if 1
+  {
+    // base
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), grey);
+    scene->add_primitive(primitive);
+  }
+#endif
+
+  std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
+  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.5), scene->center());
+
+  scene->compute_bvh();
+
+  return {scene, camera};
 }
 
 int main(int argc, char** argv)
@@ -126,15 +163,8 @@ int main(int argc, char** argv)
 
   fprintf(stdout, "Samples Per Pixel: %d, Max Bounce: %d\n", samples_per_pixel, max_bounces);
 
-  std::unique_ptr<Scene> scene = test_scene_2();
+  auto [scene, camera] = test_scene_3();
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
-
-  std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-
-  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.5), scene->center());
-  //camera->look_at(glm::dvec3(0,2, 5), glm::dvec3(0,2,0));
-
-  //camera->look_at(glm::dvec3(8,4,0), glm::dvec3(0, 4, 0));
 
   Renderer renderer(camera.get(), scene.get());
 
