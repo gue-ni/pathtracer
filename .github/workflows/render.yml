@@ -25,7 +25,7 @@ jobs:
     - name: Render
       run: |
         ${{github.workspace}}/build/pt
-        zip artefact.$(date +%s).zip ${{github.workspace}}/*.png
+        zip artefact.$(date +%s).zip ./*.png
 
     - name: Copy artefact to server
       run: |
