@@ -64,7 +64,7 @@ std::unique_ptr<Scene> test_scene_1()
 #if 1
   {
     // light
-    Primitive p(Sphere(glm::dvec3(0.0, 5.5, -4.0), 1.5), emissive);
+    Primitive p(Sphere(glm::dvec3(3.0, 5.5, 0.0), 1.5), emissive);
     scene->add_primitive(p);
   }
 #endif
@@ -81,7 +81,11 @@ std::unique_ptr<Scene> test_scene_2()
   auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
 
 #if 1
+#if _WIN32
+  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/suzanne.obj");
+#else
   auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/suzanne.obj");
+#endif
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 1
@@ -94,46 +98,8 @@ std::unique_ptr<Scene> test_scene_2()
 #if 1
   {
     // light
-    Primitive p(Sphere(glm::dvec3(0.0, 5, 0.0), 1.5), emissive);
+    Primitive p(Sphere(glm::dvec3(2, 5, 0), 1.5), emissive);
     scene->add_primitive(p);
-  }
-#endif
-
-#if 0
-  {
-    auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
-
-    double s = 1.0;
-
-    const glm::dvec3 pos(-3, 0, 0);
-
-    const glm::dvec3 vert[] = {
-        pos + glm::dvec3(+s, 0.5, +s),     // front right
-        pos + glm::dvec3(-s, 0.5, +s),     // front left
-        pos + glm::dvec3(+s, 0.5, -s),     // back right
-        pos + glm::dvec3(-s, 0.5, -s),     // back left
-        pos + glm::dvec3(0.0, 2 * s, 0.0)  // top
-    };
-
-    // triangle
-    Triangle t1(vert[0], vert[4], vert[1]);
-    Triangle t2(vert[2], vert[4], vert[0]);
-    Triangle t3(vert[3], vert[4], vert[2]);
-    Triangle t4(vert[1], vert[4], vert[3]);
-
-    std::vector<Primitive> triangles;
-    triangles.push_back(Primitive(t1, honeysuckle));
-    triangles.push_back(Primitive(t2, honeysuckle));
-    triangles.push_back(Primitive(t3, honeysuckle));
-    triangles.push_back(Primitive(t4, honeysuckle));
-
-    scene->add_primitives(triangles.begin(), triangles.end());
-
-    std::cout << "Triangles: " << triangles.size() << std::endl;
-    for (const Primitive& p : triangles) {
-      std::cout << "Triangle(" << p.triangle.v0 << ", " << p.triangle.v1 << ", " << p.triangle.v2
-                << "), normal=" << p.triangle.normal() << std::endl;
-    }
   }
 #endif
 
@@ -161,7 +127,7 @@ int main(int argc, char** argv)
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
   auto center = scene->center();
   std::cout << "Scene center: " << center << std::endl;
-  camera->look_at(glm::dvec3(1, 2, 5), glm::dvec3(0, 0, 0));
+  camera->look_at(glm::dvec3(0.5, 1.2, 2.5), glm::dvec3(0, 0, 0));
 
   Renderer renderer(camera.get(), scene.get());
 

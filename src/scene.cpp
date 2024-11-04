@@ -1,11 +1,9 @@
 
 #include "scene.h"
-#include <memory>
 #include <iostream>
 #include "aabb.h"
 #include "geometry.h"
 #include <glm/glm.hpp>
-#include <random>
 #include "tiny_obj_loader.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -71,7 +69,7 @@ struct Vertex {
 std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 {
   tinyobj::ObjReaderConfig reader_config;
-  reader_config.mtl_search_path = filename.parent_path();  // Path to look for .mtl files
+  reader_config.mtl_search_path = filename.parent_path().string();  // Path to look for .mtl files
 
   tinyobj::ObjReader reader;
 
