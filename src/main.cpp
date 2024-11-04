@@ -156,7 +156,7 @@ int main(int argc, char** argv)
   fprintf(stdout, "Samples Per Pixel: %d, Max Bounce: %d\n", samples_per_pixel, max_bounces);
 
   std::unique_ptr<Scene> scene = test_scene_2();
-  std::cout << "Primtive Count: " << scene->primitive_count() << std::endl;
+  std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
   auto center = scene->center();

@@ -75,7 +75,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   tinyobj::ObjReader reader;
 
-  if (!reader.ParseFromFile(filename, reader_config)) {
+  if (!reader.ParseFromFile(filename.string(), reader_config)) {
     if (!reader.Error().empty()) {
       std::cerr << "TinyObjReader: " << reader.Error();
     }
