@@ -85,7 +85,11 @@ int main(int argc, char** argv)
 
   renderer.save_image("latest_render.png");
 
-  std::string filename = "render_" + std::to_string(samples_per_pixel) + "s_" + std::to_string(max_bounces) + "b.png";
+  const auto now = std::chrono::system_clock::now();
+  const auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+
+  std::string filename = "render_" + std::to_string(samples_per_pixel) + "s_" + std::to_string(max_bounces) + "b_" +
+                         std::to_string(timestamp) + ".png";
   renderer.save_image(filename.c_str());
   return 0;
 }
