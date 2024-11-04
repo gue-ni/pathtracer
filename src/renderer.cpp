@@ -4,8 +4,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define PRINT_PROGRESS 1
-#define DEBUG_NORMAL   0
+#define PRINT_PROGRESS  1
+#define DEBUG_NORMAL    0
+#define COSINE_WEIGHTED 1
 
 constexpr double pi = 3.14159265359;
 
@@ -31,6 +32,11 @@ static glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
   } else {
     return -unit_vector;
   }
+}
+
+static glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
+{
+  return glm::normalize(normal + random_unit_vector());
 }
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
@@ -91,10 +97,20 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 
   Ray scattered;
   scattered.origin = surface.point;
-  scattered.direction = uniform_hemisphere_sampling(surface.normal);
 
-  double pdf = 1.0 / (2.0 * pi);
+#if COSINE_WEIGHTED
+  scattered.direction = cosine_weighted_sampling(surface.normal);
+#else
+  scattered.direction = uniform_hemisphere_sampling(surface.normal);
+#endif
+
   double cos_theta = glm::max(glm::dot(surface.normal, scattered.direction), 0.0);
+
+#if COSINE_WEIGHTED
+  double pdf = cos_theta / pi;
+#else
+  double pdf = 1.0 / (2.0 * pi);
+#endif
 
   glm::dvec3 indirect = trace_ray(scattered, depth - 1);
 
