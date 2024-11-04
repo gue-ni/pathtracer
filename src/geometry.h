@@ -17,6 +17,7 @@ struct Intersection {
   glm::dvec3 point;
   glm::dvec3 normal;
   Material* material;
+  bool inside;
   inline bool is_closer_than(const Intersection& other) const { return t < other.t; }
 };
 

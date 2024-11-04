@@ -101,10 +101,19 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
       if (ray_vs_sphere(ray, sphere, ti, t)) {
         Intersection surface;
         surface.hit = true;
+        surface.material = material;
         surface.t = t;
         surface.point = ray.point_at(t);
-        surface.normal = (surface.point - sphere.center) / sphere.radius;
-        surface.material = material;
+        glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
+        if (dot(ray.direction, normal) > 0.0) {
+          // ray is inside the sphere
+          surface.normal = -normal;
+          surface.inside = false;
+        } else {
+          // ray is outside the sphere
+          surface.normal = normal;
+          surface.inside = true;
+        }
         return surface;
       } else {
         return std::nullopt;
@@ -118,6 +127,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal();
         surface.material = material;
+        surface.inside = false;
         return surface;
       } else {
         return std::nullopt;

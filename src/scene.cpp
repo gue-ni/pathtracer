@@ -38,7 +38,7 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
-#if 0
+#if 1
   // sky
   double a = 0.5 * (r.direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
@@ -105,7 +105,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
   for (const tinyobj::material_t& m : mtls) {
     Material material;
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
-    material.radiance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
+    material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
     (void)add_material(material);
   }
 #endif

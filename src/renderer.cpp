@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "geometry.h"
+#include "material.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -8,36 +9,7 @@
 #define DEBUG_NORMAL    0
 #define COSINE_WEIGHTED 1
 
-constexpr double pi = 3.14159265359;
-
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
-
-static glm::dvec3 random_unit_vector()
-{
-  double theta = random_double() * 2.0f * pi;
-  double phi = std::acos(1.0f - 2.0f * random_double());
-
-  double x = std::sin(phi) * std::cos(theta);
-  double y = std::sin(phi) * std::sin(theta);
-  double z = std::cos(phi);
-
-  return glm::dvec3(x, y, z);
-}
-
-static glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
-{
-  glm::dvec3 unit_vector = random_unit_vector();
-  if (glm::dot(unit_vector, normal) > 0.0) {
-    return unit_vector;
-  } else {
-    return -unit_vector;
-  }
-}
-
-static glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
-{
-  return glm::normalize(normal + random_unit_vector());
-}
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
 
@@ -88,33 +60,14 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 
   Intersection surface = possible_hit.value();
   Material* material = surface.material;
-  glm::dvec3 albedo = material->albedo;
-  glm::dvec3 emitted = material->radiance;
 
   if (depth <= 0) {
     return glm::vec3(0);
   }
 
-  Ray scattered;
-  scattered.origin = surface.point;
+  BRDF::Sample sample = BRDF(&surface).sample(ray);
 
-#if COSINE_WEIGHTED
-  scattered.direction = cosine_weighted_sampling(surface.normal);
-#else
-  scattered.direction = uniform_hemisphere_sampling(surface.normal);
-#endif
-
-  double cos_theta = glm::max(glm::dot(surface.normal, scattered.direction), 0.0);
-
-#if COSINE_WEIGHTED
-  double pdf = cos_theta / pi;
-#else
-  double pdf = 1.0 / (2.0 * pi);
-#endif
-
-  glm::dvec3 indirect = trace_ray(scattered, depth - 1);
-
-  return emitted + (albedo / pi) * indirect * cos_theta / pdf;
+  return material->emittance + trace_ray(sample.ray, depth - 1) * sample.value;
 }
 
 void Renderer::save_image(const char* path)
