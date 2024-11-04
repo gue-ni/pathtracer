@@ -17,10 +17,10 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   auto red = scene->add_material(Material(glm::dvec3(.77, 0, 0)));
   auto green = scene->add_material(Material(glm::dvec3(0, 1, 0)));
   auto blue = scene->add_material(Material(glm::dvec3(0, 0, .77)));
-  auto emissive = scene->add_material(Material(glm::dvec3(1), glm::dvec3(1) * 15.0));
+  auto emissive = scene->add_material(Material(glm::dvec3(1), glm::dvec3(1) * 10.0));
+  auto glass = scene->add_material(Material(Material::TRANSMISSIVE, glm::dvec3(1), glm::dvec3(0)));
   auto pink = scene->add_material(Material(glm::dvec3(1), rgb(252, 15, 192) * 5.0));
-  auto mirror = scene->add_material(Material(glm::dvec3(1)));
-  mirror->type = Material::SPECULAR;
+  auto mirror = scene->add_material(Material(Material::SPECULAR, glm::dvec3(1), glm::dvec3(0)));
 
 #if 1
 #if _WIN32
@@ -49,11 +49,11 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 0), 20), mirror));
 #endif
 #if 1
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), pink));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), glass));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->set_position(glm::dvec3(0, 40, 100));
+  camera->set_position(glm::dvec3(0, 50, 100));
 
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;
