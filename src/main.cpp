@@ -8,38 +8,44 @@
 #include <ratio>
 #include <string>
 
-
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
   auto scene = std::make_unique<Scene>();
 
-  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
-  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
+  auto white = scene->add_material(Material(glm::dvec3(1.0)));
+  auto red = scene->add_material(Material(glm::dvec3(.77, 0, 0)));
+  auto green = scene->add_material(Material(glm::dvec3(0, 1, 0)));
+  auto blue = scene->add_material(Material(glm::dvec3(0, 0, .77)));
+  auto emissive = scene->add_material(Material(glm::dvec3(1), glm::dvec3(1) * 15.0));
 
 #if 1
 #if _WIN32
-  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/bunny.obj");
+  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/cornell_box.obj");
 #else
   auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
 #endif
 
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
-  std::cout << "Size: " << bbox.size() << ", Center: " << bbox.center() << std::endl;
+  std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
 
   scene->set_center(bbox.center());
   scene->set_focus_size(bbox.size());
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
-#if 1
-  {
-    // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), grey);
-    scene->add_primitive(primitive);
-  }
+#if 0
+  // base
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), white));
+#endif
+#if 0
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(0, bbox.max.y + bbox.size().y, 0), 50), emissive));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.2), scene->center());
+  // camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.2), scene->center());
+  camera->set_position(glm::dvec3(0, 50, 100));
+
+  std::cout << "Camera Position: " << camera->position() << std::endl;
+  std::cout << "Camera Direction: " << camera->direction() << std::endl;
 
   scene->compute_bvh();
 
