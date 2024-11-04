@@ -140,7 +140,7 @@ int main(int argc, char** argv)
   std::unique_ptr<Scene> scene = test_scene_2();
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->look_at(glm::dvec3(0, 1, 5), scene->center());
+  camera->look_at(glm::dvec3(-5, 5, 5), scene->center());
 
   Renderer renderer(camera.get(), scene.get());
 

@@ -90,6 +90,8 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
   auto& shapes = reader.GetShapes();
   const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
 
+  Material* default_material = add_material(Material(glm::dvec3(1, 0, 0)));
+
   // Print out vertices, shapes, and materials info
   std::cout << "# of vertices: " << (attrib.vertices.size() / 3) << std::endl;
   std::cout << "# of shapes: " << shapes.size() << std::endl;
@@ -97,7 +99,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   auto offset = material_count;
 
-#if 0
+#if 1
   for (const tinyobj::material_t& m : materials) {
     Material material;
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
@@ -105,8 +107,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     (void)add_material(material);
   }
 #endif
-
-  Material* default_material = add_material(Material(glm::dvec3(1, 0, 1)));
 
   std::vector<Vertex> vertices;
 
@@ -119,7 +119,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
       // per-face material
       int material_id = shapes[s].mesh.material_ids[f];
-      std::cout << "MaterialId = " << material_id << std::endl;
 
       // Loop over vertices in the face.
       for (size_t v = 0; v < fv; v++) {
@@ -154,14 +153,14 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     auto v0 = vertices[i * 3 + 0].pos;
     auto v1 = vertices[i * 3 + 1].pos;
     auto v2 = vertices[i * 3 + 2].pos;
-    Triangle tri(v0, v2, v1);
+    Triangle tri(v0, v1, v2);
 
     int id = offset + vertices[i * 3].material_id;
     Material* m = &this->materials[id];
-    triangles.push_back(Primitive(tri, default_material));
+    triangles.push_back(Primitive(tri, m));
   }
 
-#if 1
+#if 0
   std::cout << "Triangles: " << triangles.size() << std::endl;
   for (const Primitive& p : triangles) {
     std::cout << "Triangle(" << p.triangle.v0 << ", " << p.triangle.v1 << ", " << p.triangle.v2
