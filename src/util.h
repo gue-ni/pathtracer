@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <random>
 
 template <typename T>
 struct Interval {
@@ -21,7 +22,22 @@ struct Interval {
   }
 };
 
-inline glm::dvec3 rgb(int r, int g, int b)
+inline glm::dvec3 rgb(int r, int g, int b) { return glm::dvec3(double(r), double(g), double(b)) / 255.0; }
+
+inline double random_double()
 {
-  return glm::dvec3(double(r), double(g), double(b)) / 255.0;
+#if 0
+  return (double)rand() / ((double)RAND_MAX + 1);
+#else
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dist(0.0f, 1.0f);
+  return dist(gen);
+#endif
+}
+
+template <typename T>
+inline T map_range(const T& value, const T& in_min, const T& in_max, const T& out_min, const T& out_max)
+{
+  return out_min + (value - in_min) * (out_max - out_min) / (in_max - in_min);
 }

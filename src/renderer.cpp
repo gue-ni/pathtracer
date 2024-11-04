@@ -9,18 +9,6 @@
 
 constexpr double pi = 3.14159265359;
 
-static double random_double()
-{
-#if 1
-  return (double)rand() / ((double)RAND_MAX + 1);
-#else
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  std::uniform_real_distribution<double> dist(0.0f, 1.0f);
-  return dist(gen);
-#endif
-}
-
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 static glm::dvec3 random_unit_vector()

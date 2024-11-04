@@ -38,9 +38,13 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
+#if 0
   // sky
   double a = 0.5 * (r.direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
+#else
+  return glm::dvec3(1);
+#endif
 }
 
 Material* Scene::add_material(const Material& m)
@@ -59,10 +63,7 @@ void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const s
 
 void Scene::compute_bvh() { bvh = std::make_unique<BVH>(primitives); }
 
-glm::dvec3 Scene::center() const
-{
-  return m_center;
-}
+glm::dvec3 Scene::center() const { return m_center; }
 
 struct Vertex {
   glm::dvec3 pos;

@@ -11,26 +11,10 @@
 
 #define ENABLE_COUNTER 1
 #if ENABLE_COUNTER
-std::atomic<int> intersection_test_counter = 0;
+std::atomic<uint64_t> intersection_test_counter = 0;
 #endif
 
-bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
-{
-  glm::dvec3 m = r.origin - s.center;
-  double b = glm::dot(m, r.direction);
-  double c = glm::dot(m, m) - s.radius * s.radius;
-
-  if (c > 0.0 && b > 0.0) return false;
-  double discr = b * b - c;
-
-  if (discr < 0.0) return false;
-
-  t = -b - glm::sqrt(discr);
-  if (t < 0.0) t = 0.0;
-  return true;
-}
-
-bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t)
+bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t)
 {
   auto oc = s.center - r.origin;
   auto a = glm::length2(r.direction);
@@ -48,12 +32,6 @@ bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti,
     root = (h + sqrtd) / a;
     if (!ti.surrounds(root)) return false;
   }
-
-  // rec.t = root;
-  // rec.p = r.at(rec.t);
-  // vec3 outward_normal = (rec.p - center) / radius;
-  // rec.set_face_normal(r, outward_normal);
-  // rec.mat = mat;
 
   t = root;
   return true;
@@ -120,7 +98,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   Interval<double> ti(0.001, 1e9);
   switch (type) {
     case SPHERE: {
-      if (ray_vs_sphere_v2(ray, sphere, ti, t)) {
+      if (ray_vs_sphere(ray, sphere, ti, t)) {
         Intersection surface;
         surface.hit = true;
         surface.t = t;
@@ -175,7 +153,6 @@ std::optional<Intersection> closest(const std::optional<Intersection> a, const s
 void print_stats()
 {
 #if ENABLE_COUNTER
-  printf("Intersection Test Count: %d\n", intersection_test_counter.load());
+  std::cout << "Intersection Test Count: " << intersection_test_counter.load() << std::endl;
 #endif
 }
-
