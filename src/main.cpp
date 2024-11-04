@@ -8,110 +8,8 @@
 #include <ratio>
 #include <string>
 
-std::unique_ptr<Scene> test_scene_1()
-{
-  auto scene = std::make_unique<Scene>();
 
-  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
-  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
-  auto tangerine_tango = scene->add_material(Material(rgb(217, 65, 37)));
-  auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
-
-#if 1
-  {
-    // sphere
-    Sphere sphere(glm::dvec3(-1.5, 1.2, -4.0), 1.0);
-    Primitive primitive(sphere, tangerine_tango);
-    scene->add_primitive(primitive);
-  }
-#endif
-#if 1
-  {
-    double c = -4;
-    double s = 1.0;
-
-    const glm::dvec3 pos(1.5, 0.0, -4.0);
-
-    const glm::dvec3 vert[] = {
-        pos + glm::dvec3(+s, 0.5, +s),     // front right
-        pos + glm::dvec3(-s, 0.5, +s),     // front left
-        pos + glm::dvec3(+s, 0.5, -s),     // back right
-        pos + glm::dvec3(-s, 0.5, -s),     // back left
-        pos + glm::dvec3(0.0, 2 * s, 0.0)  // top
-    };
-
-    // triangle
-    Triangle t1(vert[0], vert[4], vert[1]);
-    Triangle t2(vert[2], vert[4], vert[0]);
-    Triangle t3(vert[3], vert[4], vert[2]);
-    Triangle t4(vert[1], vert[4], vert[3]);
-
-    scene->add_primitive(Primitive(t1, honeysuckle));
-    scene->add_primitive(Primitive(t2, honeysuckle));
-    scene->add_primitive(Primitive(t3, honeysuckle));
-    scene->add_primitive(Primitive(t4, honeysuckle));
-  }
-#endif
-#if 0
-  {
-    // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5, 0.0), 1e5), grey);
-    scene->add_primitive(primitive);
-  }
-#endif
-#if 0
-  {
-    // light
-    Primitive p(Sphere(glm::dvec3(3.0, 5.5, 0.0), 1.5), emissive);
-    scene->add_primitive(p);
-  }
-#endif
-
-  scene->compute_bvh();
-  return scene;
-}
-
-std::unique_ptr<Scene> test_scene_2()
-{
-  auto scene = std::make_unique<Scene>();
-
-  auto grey = scene->add_material(Material(glm::dvec3(0.77)));
-  auto emissive = scene->add_material(Material(glm::dvec3(0.99), glm::dvec3(0.99) * 5.0));
-
-#if 1
-#if _WIN32
-  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/bunny.obj");
-#else
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
-#endif
-
-  AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
-  std::cout << "Size: " << bbox.size() << ", Center: " << bbox.center() << std::endl;
-
-  scene->set_center(bbox.center());
-  scene->set_focus_size(bbox.size());
-  scene->add_primitives(mesh.begin(), mesh.end());
-#endif
-#if 1
-  {
-    // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), grey);
-    scene->add_primitive(primitive);
-  }
-#endif
-#if 0
-  {
-    // light
-    Primitive p(Sphere(glm::dvec3(2, bbox.size().y * 1.5, 0), 5), emissive);
-    scene->add_primitive(p);
-  }
-#endif
-
-  scene->compute_bvh();
-  return scene;
-}
-
-std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_3()
+std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
   auto scene = std::make_unique<Scene>();
 
@@ -162,7 +60,7 @@ int main(int argc, char** argv)
 
   fprintf(stdout, "Samples Per Pixel: %d, Max Bounce: %d\n", samples_per_pixel, max_bounces);
 
-  auto [scene, camera] = test_scene_3();
+  auto [scene, camera] = test_scene_1();
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
 
   Renderer renderer(camera.get(), scene.get());
