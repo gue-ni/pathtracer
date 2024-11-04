@@ -6,6 +6,7 @@
 #include "ray.h"
 #include "material.h"
 #include "util.h"
+#include <filesystem>
 #include <optional>
 #include <memory>
 #include <vector>
@@ -71,3 +72,4 @@ struct Primitive {
 std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives);
 
 void print_stats();
+

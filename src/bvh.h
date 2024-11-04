@@ -10,10 +10,7 @@
 class BVH
 {
  public:
-  BVH(const std::vector<Primitive>&);
-  std::optional<Intersection> traverse(const Ray&);
 
- private:
   struct Node {
     std::unique_ptr<Node> left, right;
     AABB bbox;
@@ -22,6 +19,13 @@ class BVH
     std::optional<Intersection> intersect(const Ray&);
     std::optional<Intersection> intersect_primitives(const Ray&);
   };
+
+
+  BVH(const std::vector<Primitive>&);
+  std::optional<Intersection> traverse(const Ray&);
+  Node* root() const { return m_root.get(); }
+
+ private:
 
   const size_t split_threshold = 5;
   std::unique_ptr<Node> m_root;

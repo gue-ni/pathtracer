@@ -1,13 +1,10 @@
 #include "renderer.h"
-#include <memory>
-#include <new>
-#include <random>
 #include "geometry.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define PRINT_PROGRESS 0
+#define PRINT_PROGRESS 1
 #define DEBUG_NORMAL   0
 
 constexpr double pi = 3.14159265359;
