@@ -20,10 +20,10 @@ FetchContent_MakeAvailable(glm)
 
 FIND_PACKAGE( OpenMP REQUIRED)
 if(OPENMP_FOUND)
-	message("OPENMP FOUND")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  message("OPENMP FOUND")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
 add_executable(pt
@@ -34,7 +34,8 @@ add_executable(pt
   "src/renderer.cpp"
   "src/scene.cpp"
   "src/material.cpp"
-  "src/kdtree.cpp"
+  "src/aabb.cpp"
+  "src/bvh.cpp"
 )
 
 target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}")

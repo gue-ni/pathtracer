@@ -1,25 +1,33 @@
 #include "renderer.h"
 #include <memory>
-#include <iostream>
 #include <new>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/io.hpp"
+#include <random>
+#include "geometry.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 #define PRINT_PROGRESS 0
+#define DEBUG_NORMAL   0
 
 constexpr double pi = 3.14159265359;
 
-double random_double() { return (double)rand() / ((double)RAND_MAX + 1); }
+static double random_double()
+{
+#if 1
+  return (double)rand() / ((double)RAND_MAX + 1);
+#else
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dist(0.0f, 1.0f);
+  return dist(gen);
+#endif
+}
+
+static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 static glm::dvec3 random_unit_vector()
 {
-  // static std::random_device rd;
-  // static std::mt19937 gen(rd());
-  // std::uniform_real_distribution<double> dist(0.0f, 1.0f);
   double theta = random_double() * 2.0f * pi;
   double phi = std::acos(1.0f - 2.0f * random_double());
 
@@ -40,6 +48,8 @@ static glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
   }
 }
 
+static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
+
 Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
@@ -54,6 +64,7 @@ void Renderer::render(int samples, int max_bounce)
 {
   double sample_weight = 1.0 / double(samples);
 
+#pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 #if PRINT_PROGRESS
     printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
@@ -74,41 +85,38 @@ void Renderer::render(int samples, int max_bounce)
 
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 {
-  Intersection surface = m_scene->find_intersection(ray);
+  auto possible_hit = m_scene->find_intersection(ray);
 
-  if (!surface.hit) {
+  if (!possible_hit.has_value()) {
     return m_scene->background(ray);
+  } else {
+#if DEBUG_NORMAL
+    return normal_as_color(possible_hit.value().normal);
+#endif
   }
 
+  Intersection surface = possible_hit.value();
   Material* material = surface.material;
   glm::dvec3 albedo = material->albedo;
   glm::dvec3 emitted = material->radiance;
 
-  if (depth == 0) {
+  if (depth <= 0) {
     return glm::vec3(0);
-    // return material->albedo;
   }
 
-  Ray scatter;
-  // scatter.origin = surface.point + surface.normal * 1e-8;
-  scatter.origin = surface.point;
-  scatter.direction = uniform_hemisphere_sampling(surface.normal);
+  Ray scattered;
+  scattered.origin = surface.point;
+  scattered.direction = uniform_hemisphere_sampling(surface.normal);
 
   double pdf = 1.0 / (2.0 * pi);
-  double cos_theta = glm::max(glm::dot(surface.normal, scatter.direction), 0.0);
+  double cos_theta = glm::max(glm::dot(surface.normal, scattered.direction), 0.0);
 
-  glm::dvec3 indirect = trace_ray(scatter, depth - 1);
+  glm::dvec3 indirect = trace_ray(scattered, depth - 1);
 
-#if 1
   return emitted + (albedo / pi) * indirect * cos_theta / pdf;
-#else
-  return emitted + (albedo / pi);
-#endif
 }
 
-uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
-
-void Renderer::save_image(const std::filesystem::path& path)
+void Renderer::save_image(const char* path)
 {
   std::vector<unsigned char> pixels;
 
@@ -119,9 +127,8 @@ void Renderer::save_image(const std::filesystem::path& path)
     pixels.push_back(map_pixel(color.b));
   }
 
-  auto filepath = path.string();
-  if (stbi_write_png(filepath.c_str(), m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
-    fprintf(stdout, "Image '%s' saved successfully!\n", filepath.c_str());
+  if (stbi_write_png(path, m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
+    fprintf(stdout, "Image '%s' saved successfully!\n", path);
   } else {
     fprintf(stderr, "Failed to save image!\n");
   }
