@@ -6,7 +6,7 @@
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
-std::tuple<Ray, glm::dvec3> BRDF::sample(const Ray& incoming)
+BRDF::Sample BRDF::sample(const Ray& incoming)
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
@@ -16,17 +16,17 @@ std::tuple<Ray, glm::dvec3> BRDF::sample(const Ray& incoming)
   }
 }
 
-std::tuple<Ray, glm::dvec3> BRDF::sample_diffuse(const Ray& incoming)
+BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 {
   Ray scattered = Ray(surface->point, cosine_weighted_sampling(surface->normal));
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
   glm::dvec3 brdf_value = surface->material->albedo / pi;
-  return std::make_tuple(scattered, brdf_value * cos_theta / pdf);
+  return BRDF::Sample{scattered, brdf_value * cos_theta / pdf};
 }
 
-std::tuple<Ray, glm::dvec3> BRDF::sample_specular(const Ray& incoming)
+BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
   Ray reflected = Ray(surface->point, glm::reflect(incoming.direction, surface->normal));
-  return std::make_tuple(reflected, surface->material->albedo);
+  return BRDF::Sample{reflected, surface->material->albedo};
 }

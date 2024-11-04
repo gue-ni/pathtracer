@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "geometry.h"
+#include "material.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -64,9 +65,9 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
     return glm::vec3(0);
   }
 
-  auto [scattered, sample_value] = BRDF(&surface).sample(ray);
+  BRDF::Sample sample = BRDF(&surface).sample(ray);
 
-  return material->emittance + trace_ray(scattered, depth - 1) * sample_value;
+  return material->emittance + trace_ray(sample.ray, depth - 1) * sample.value;
 }
 
 void Renderer::save_image(const char* path)
