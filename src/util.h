@@ -2,6 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <random>
+#include <array>
+
+constexpr double pi = 3.14159265359;
 
 template <typename T>
 struct Interval {
@@ -36,8 +39,45 @@ inline double random_double()
 #endif
 }
 
+inline glm::dvec3 random_unit_vector()
+{
+  double theta = random_double() * 2.0f * pi;
+  double phi = std::acos(1.0f - 2.0f * random_double());
+
+  double x = std::sin(phi) * std::cos(theta);
+  double y = std::sin(phi) * std::sin(theta);
+  double z = std::cos(phi);
+
+  return glm::dvec3(x, y, z);
+}
+
+inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
+{
+  glm::dvec3 unit_vector = random_unit_vector();
+  if (glm::dot(unit_vector, normal) > 0.0) {
+    return unit_vector;
+  } else {
+    return -unit_vector;
+  }
+}
+
+inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
+{
+  return glm::normalize(normal + random_unit_vector());
+}
+
 template <typename T>
 inline T map_range(const T& value, const T& in_min, const T& in_max, const T& out_min, const T& out_max)
 {
   return out_min + (value - in_min) * (out_max - out_min) / (in_max - in_min);
 }
+
+class OrthonormalBasis
+{
+ public:
+  OrthonormalBasis(const glm::dvec3& normal) {}
+  inline glm::dvec3 transform(const glm::dvec3& vec) const;
+
+ private:
+  std::array<glm::dvec3, 3> axis;
+};

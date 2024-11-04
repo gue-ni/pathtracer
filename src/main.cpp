@@ -1,6 +1,7 @@
 
 #include "aabb.h"
 #include "geometry.h"
+#include "material.h"
 #include "renderer.h"
 #include "scene.h"
 #include <chrono>
@@ -17,6 +18,8 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   auto green = scene->add_material(Material(glm::dvec3(0, 1, 0)));
   auto blue = scene->add_material(Material(glm::dvec3(0, 0, .77)));
   auto emissive = scene->add_material(Material(glm::dvec3(1), glm::dvec3(1) * 15.0));
+  auto mirror = scene->add_material(Material(glm::dvec3(1)));
+  mirror->type = Material::SPECULAR;
 
 #if 1
 #if _WIN32
@@ -38,6 +41,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 #endif
 #if 0
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0, bbox.max.y + bbox.size().y, 0), 50), emissive));
+#endif
+#if 1
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(50, 50, 0), 25), mirror));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
