@@ -1,15 +1,12 @@
 
 #include "aabb.h"
-#include "camera.h"
 #include "geometry.h"
 #include "renderer.h"
 #include "scene.h"
 #include <chrono>
-#include <tuple>
 #include <memory>
 #include <ratio>
 #include <string>
-#include <utility>
 
 std::unique_ptr<Scene> test_scene_1()
 {
@@ -144,7 +141,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_3()
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.5), scene->center());
+  camera->look_at(glm::dvec3(0, scene->focus_size().y / 2, scene->focus_size().x * 1.2), scene->center());
 
   scene->compute_bvh();
 
