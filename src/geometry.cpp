@@ -11,7 +11,7 @@
 
 #define ENABLE_COUNTER 1
 #if ENABLE_COUNTER
-std::atomic<int> intersection_test_counter = 0;
+std::atomic<uint64_t> intersection_test_counter = 0;
 #endif
 
 bool ray_vs_sphere(const Ray& r, const Sphere& s, double& t)
@@ -175,7 +175,6 @@ std::optional<Intersection> closest(const std::optional<Intersection> a, const s
 void print_stats()
 {
 #if ENABLE_COUNTER
-  printf("Intersection Test Count: %d\n", intersection_test_counter.load());
+  std::cout << "Intersection Test Count: " << intersection_test_counter.load() << std::endl;
 #endif
 }
-

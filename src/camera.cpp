@@ -1,7 +1,6 @@
 #include "camera.h"
-#include "glm/fwd.hpp"
-#include "glm/geometric.hpp"
-#include "glm/trigonometric.hpp"
+#include "util.h"
+#include <glm/glm.hpp>
 
 Camera::Camera(int width, int height)
     : m_width(width),
@@ -17,7 +16,11 @@ Camera::Camera(int width, int height)
 Ray Camera::get_ray(int x, int y) const
 {
   glm::dvec2 image_size(m_width, m_height);
-  glm::dvec2 uv = (glm::dvec2(x, y) / image_size) * 2.0 - 1.0;
+
+  glm::dvec2 rnd(random_double(), random_double());
+  glm::dvec2 jitter = map_range(rnd, glm::dvec2(0), glm::dvec2(1), glm::dvec2(-.5), glm::dvec2(+.5));
+
+  glm::dvec2 uv = ((glm::dvec2(x, y) + jitter) / image_size) * 2.0 - 1.0;
 
   double aspect_ratio = image_size.x / image_size.y;
   double half_height = std::tan(m_fov / 2.0);
