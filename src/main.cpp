@@ -22,7 +22,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 #if _WIN32
   auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/cornell_box.obj");
 #else
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/bunny.obj");
+  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cornell_box.obj");
 #endif
 
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
