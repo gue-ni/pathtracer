@@ -1,6 +1,5 @@
 #include "material.h"
 #include <cassert>
-#include <tuple>
 #include "geometry.h"
 #include "util.h"
 
@@ -33,24 +32,14 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   return BRDF::Sample{reflected, surface->material->albedo};
 }
 
-static glm::dvec3 refract(const glm::dvec3& uv, const glm::dvec3& n, double etai_over_etat)
-{
-  double cos_theta = glm::min(glm::dot(-uv, n), 1.0);
-  auto r_out_perp = etai_over_etat * (uv + cos_theta * n);
-  auto r_out_parallel = -glm::sqrt(glm::abs(1.0 - glm::dot(r_out_perp, r_out_perp))) * n;
-  return r_out_perp + r_out_parallel;
-}
-
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
 {
-  // TODO
-
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
   Ray refracted;
   refracted.origin = surface->point;
-  refracted.direction = refract(-incoming.direction, surface->normal, refraction_index);
+  refracted.direction = glm::refract(incoming.direction, surface->normal, ri);
 
   return BRDF::Sample{refracted, glm::dvec3(1, 1, 1)};
 }
