@@ -5,9 +5,11 @@
 #include "renderer.h"
 #include "scene.h"
 #include <chrono>
+#include <tuple>
 #include <memory>
 #include <ratio>
 #include <string>
+#include <utility>
 
 std::unique_ptr<Scene> test_scene_1()
 {
@@ -112,7 +114,7 @@ std::unique_ptr<Scene> test_scene_2()
   return scene;
 }
 
-std::pair <std::unique_ptr<Scene>, std::unique_ptr<Camera> test_scene_3()
+std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_3()
 {
   auto scene = std::make_unique<Scene>();
 
@@ -146,7 +148,7 @@ std::pair <std::unique_ptr<Scene>, std::unique_ptr<Camera> test_scene_3()
 
   scene->compute_bvh();
 
-  return {scene, camera};
+  return std::make_tuple(std::move(scene), std::move(camera));
 }
 
 int main(int argc, char** argv)
