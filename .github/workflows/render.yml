@@ -26,8 +26,8 @@ jobs:
       run: |
         ${{github.workspace}}/build/pt 265 3
         tar -czvf artifact.$(date +%s).tar.gz ${{github.workspace}}/build/*.png
-
-   - name: Copy result to server
+    
+    - name: Copy result to server
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
