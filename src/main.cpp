@@ -81,7 +81,7 @@ std::unique_ptr<Scene> test_scene_2()
   auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cube.obj");
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
-#if 0
+#if 1
   {
     auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
 
