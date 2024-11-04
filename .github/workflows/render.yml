@@ -20,17 +20,17 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel
 
     - name: Render
       run: |
         ${{github.workspace}}/build/pt 265 3
-        tar -czvf artifact.$(date +%s).tar.gz ${{github.workspace}}/build/*.png
-    
-    - name: Copy artifact to server
+        tar -czvf artefact.$(date +%s).tar.gz ${{github.workspace}}/build/*.png
+
+    - name: Copy artefact to server
       run: |
         echo ${{ secrets.KEY }} > ${{github.workspace}}/tmp-ssh-key
-        scp -P ${{ secrets.PORT }} -i ${{github.workspace}}/tmp-ssh-key ${{github.workspace}}/build/*.tar.gz ${{ secrets.USER }}@${{ secrets.HOST }}:/var/www/private/files/render-artifacts
+        scp -P ${{ secrets.PORT }} -i ${{github.workspace}}/tmp-ssh-key ${{github.workspace}}/build/*.tar.gz ${{ secrets.USER }}@${{ secrets.HOST }}:/var/www/private/files/render-artefacts
 
 
 
