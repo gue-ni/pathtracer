@@ -14,20 +14,16 @@ class Scene
 {
  public:
   Scene();
-  void compute();
+  void compute_bvh();
   void add_primitive(const Primitive& p) { primitives.push_back(p); }
+  void add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end);
   Material* add_material(const Material& m);
-
-  template <typename It>
-  void add_primitives(It begin, It end)
-  {
-    for (auto it = begin; it != end; it++) {
-      add_primitive(*it);
-    }
-  }
+  std::vector<Primitive> load_obj(const std::filesystem::path& filename);
 
   std::optional<Intersection> find_intersection(const Ray&);
   glm::dvec3 background(const Ray&);
+  glm::dvec3 center() const;
+
 
  private:
   std::vector<Primitive> primitives;

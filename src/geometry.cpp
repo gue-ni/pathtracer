@@ -1,9 +1,10 @@
 #include "geometry.h"
 #include <cstdio>
+#include <iostream>
 #include <optional>
 #include <atomic>
 #include <glm/glm.hpp>
-#include "glm/fwd.hpp"
+#include <vector>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include "glm/exponential.hpp"
@@ -177,3 +178,4 @@ void print_stats()
   printf("Intersection Test Count: %d\n", intersection_test_counter.load());
 #endif
 }
+

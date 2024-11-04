@@ -1,4 +1,5 @@
 
+#include "aabb.h"
 #include "camera.h"
 #include "geometry.h"
 #include "material.h"
@@ -9,7 +10,7 @@
 #include <ratio>
 #include <string>
 
-std::unique_ptr<Scene> test_scene()
+std::unique_ptr<Scene> test_scene_1()
 {
   auto scene = std::make_unique<Scene>();
 
@@ -53,10 +54,10 @@ std::unique_ptr<Scene> test_scene()
     scene->add_primitive(Primitive(t4, honeysuckle));
   }
 #endif
-#if 1
+#if 0
   {
     // base
-    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5, -4.0), 1e5), grey);
+    Primitive primitive(Sphere(glm::dvec3(0.0, -1e5, 0.0), 1e5), grey);
     scene->add_primitive(primitive);
   }
 #endif
@@ -68,8 +69,57 @@ std::unique_ptr<Scene> test_scene()
   }
 #endif
 
+  scene->compute_bvh();
+  return scene;
+}
 
-  scene->compute();
+std::unique_ptr<Scene> test_scene_2()
+{
+  auto scene = std::make_unique<Scene>();
+
+#if 1
+  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cube.obj");
+  scene->add_primitives(mesh.begin(), mesh.end());
+#endif
+#if 0
+  {
+    auto honeysuckle = scene->add_material(Material(rgb(230, 99, 134)));
+
+    double s = 1.0;
+
+    const glm::dvec3 pos(-3, 0, 0);
+
+    const glm::dvec3 vert[] = {
+        pos + glm::dvec3(+s, 0.5, +s),     // front right
+        pos + glm::dvec3(-s, 0.5, +s),     // front left
+        pos + glm::dvec3(+s, 0.5, -s),     // back right
+        pos + glm::dvec3(-s, 0.5, -s),     // back left
+        pos + glm::dvec3(0.0, 2 * s, 0.0)  // top
+    };
+
+    // triangle
+    Triangle t1(vert[0], vert[4], vert[1]);
+    Triangle t2(vert[2], vert[4], vert[0]);
+    Triangle t3(vert[3], vert[4], vert[2]);
+    Triangle t4(vert[1], vert[4], vert[3]);
+
+    std::vector<Primitive> triangles;
+    triangles.push_back(Primitive(t1, honeysuckle));
+    triangles.push_back(Primitive(t2, honeysuckle));
+    triangles.push_back(Primitive(t3, honeysuckle));
+    triangles.push_back(Primitive(t4, honeysuckle));
+
+    scene->add_primitives(triangles.begin(), triangles.end());
+
+    std::cout << "Triangles: " << triangles.size() << std::endl;
+    for (const Primitive& p : triangles) {
+      std::cout << "Triangle(" << p.triangle.v0 << ", " << p.triangle.v1 << ", " << p.triangle.v2
+                << "), normal=" << p.triangle.normal() << std::endl;
+    }
+  }
+#endif
+
+  scene->compute_bvh();
   return scene;
 }
 
@@ -87,10 +137,10 @@ int main(int argc, char** argv)
 
   fprintf(stdout, "Samples Per Pixel: %d, Max Bounce: %d\n", samples_per_pixel, max_bounces);
 
-  std::unique_ptr<Scene> scene = test_scene();
+  std::unique_ptr<Scene> scene = test_scene_2();
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->look_at(glm::dvec3(-1, 1.5, 0), glm::dvec3(0, .5, -4));
+  camera->look_at(glm::dvec3(0, 1, 5), scene->center());
 
   Renderer renderer(camera.get(), scene.get());
 

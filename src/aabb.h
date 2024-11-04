@@ -21,6 +21,10 @@ struct AABB {
 
   inline glm::dvec3 size() const { return max - min; }
 
+  inline glm::dvec3 center() const {
+    return min + size() / 2.0;
+  }
+
   inline size_t longest_axis() const
   {
     auto s = size();
