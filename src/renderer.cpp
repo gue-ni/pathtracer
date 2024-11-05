@@ -38,7 +38,7 @@ void Renderer::render(int samples, int max_bounce)
 
     #pragma omp cancellation point for
     if (cancel) {
-      break;
+      #pragma omp cancel for
     }
 
 #if PRINT_PROGRESS
