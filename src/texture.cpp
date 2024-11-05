@@ -14,9 +14,10 @@ Texture2D::~Texture2D()
   }
 }
 
-bool Texture2D::load(const std::string& path)
+bool Texture2D::load(const std::filesystem::path& path)
 {
-  return (m_data = stbi_load(path.c_str(), &m_width, &m_height, &m_channels, 3)) != nullptr;
+  auto tmp = path.string();
+  return (m_data = stbi_load(tmp.c_str(), &m_width, &m_height, &m_channels, 3)) != nullptr;
 }
 
 glm::u8vec3 Texture2D::pixel(int x, int y) const

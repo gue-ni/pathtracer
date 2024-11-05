@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 #include <glm/glm.hpp>
 
 class Texture2D
@@ -8,7 +9,7 @@ class Texture2D
  public:
   Texture2D();
   ~Texture2D();
-  bool load(const std::string& path);
+  bool load(const std::filesystem::path& path);
   glm::dvec3 sample(double u, double v) const;
   glm::dvec3 sample(const glm::dvec2& uv) const;
 

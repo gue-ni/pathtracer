@@ -8,11 +8,18 @@
 #include <chrono>
 #include <memory>
 #include <ratio>
+#include <filesystem>
 #include <string>
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
   auto scene = std::make_unique<Scene>();
+
+#if _WIN32
+  std::filesystem::path models = "C:/Users/jakob/Documents/Projects/pathtracer/doc/models";
+#else
+  std::filesystem::path models = "/home/pi/pathtracer/doc/models";
+#endif
 
   auto white = scene->add_material(Material(glm::dvec3(1.0)));
   auto red = scene->add_material(Material(glm::dvec3(.77, 0, 0)));
@@ -24,20 +31,12 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   auto mirror = scene->add_material(Material(Material::SPECULAR, glm::dvec3(1), glm::dvec3(0)));
 
   auto tex = scene->add_material(Material());
-  tex->albedo = glm::dvec3(1,0,0);
+  tex->albedo = glm::dvec3(1, 0, 0);
   tex->texture = new Texture2D();
-#if _WIN32
-  tex->texture->load("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/uv-test.png");
-#else
-  tex->texture->load("/home/pi/pathtracer/doc/models/uv-test.png");
-#endif
+  tex->texture->load(models / std::filesystem::path("uv-test.png"));
 
 #if 1
-#if _WIN32
-  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/cornell_box.obj");
-#else
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cornell_box.obj");
-#endif
+  auto mesh = scene->load_obj(models / std::filesystem::path("cornell_box.obj"));
 
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
   std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
