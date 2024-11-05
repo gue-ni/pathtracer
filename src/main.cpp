@@ -27,9 +27,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   tex->albedo = glm::dvec3(1,0,0);
   tex->texture = new Texture2D();
 #if _WIN32
-  tex->texture->load("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/test.png");
+  tex->texture->load("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/uv-test.png");
 #else
-  tex->texture->load("/home/pi/pathtracer/doc/models/test.png");
+  tex->texture->load("/home/pi/pathtracer/doc/models/uv-test.png");
 #endif
 
 #if 1
