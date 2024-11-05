@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "geometry.h"
 #include "material.h"
+#include <atomic>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -9,8 +10,11 @@
 #define DEBUG_NORMAL    0
 #define COSINE_WEIGHTED 1
 
+std::atomic<bool> cancel = false;
+
 void handle_sigterm(int signum) {
-  #pragma omp cancel for
+  //#pragma omp cancel for
+  cancel = true;
 }
 
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
@@ -29,13 +33,13 @@ Renderer::~Renderer()
 
 void Renderer::render(int samples, int max_bounce)
 {
-  double sample_weight = 1.0 / double(samples);
-
-#pragma omp parallel for schedule(dynamic, 1)
+  #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 
     #pragma omp cancellation point for
-
+    if (cancel) {
+      break;
+    }
 
 #if PRINT_PROGRESS
     printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
@@ -49,7 +53,7 @@ void Renderer::render(int samples, int max_bounce)
         color += trace_ray(ray, max_bounce);
       }
 
-      m_buffer[y * m_camera->width() + x] = color * sample_weight;
+      m_buffer[y * m_camera->width() + x] = color /  double(samples);
     }
   }
 }
