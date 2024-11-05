@@ -3,6 +3,19 @@
 #include "geometry.h"
 #include "util.h"
 
+glm::dmat3 local_to_world(const glm::dvec3& normal) 
+{
+  // TODO
+  // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
+  return glm::dmat3();
+}
+
+glm::dvec3 vector_from_spherical(double pitch, double yaw) 
+{
+  // TODO
+  return glm::dvec3();
+}
+
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
 BRDF::Sample BRDF::sample(const Ray& incoming)
