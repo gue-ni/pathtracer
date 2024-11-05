@@ -37,23 +37,21 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 0
-  // base
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), white));
 #endif
-#if 1
-  // light
+#if 0
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0, 170, 0), 30), emissive));
 #endif
 #if 1
-  // reflective sphere
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 0), 20), mirror));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 10), 20), mirror));
 #endif
 #if 1
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), glass));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 10), 20), glass));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->set_position(glm::dvec3(0, 50, 100));
+  //camera->set_position(glm::dvec3(0, 50, 100));
+  camera->look_at(glm::dvec3(0, 50, 100), glm::dvec3(0, 50, 20));
 
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;

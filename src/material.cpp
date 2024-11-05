@@ -1,8 +1,23 @@
 #include "material.h"
 #include <cassert>
-#include <tuple>
 #include "geometry.h"
 #include "util.h"
+
+glm::dmat3 local_to_world(const glm::dvec3& up)
+{
+  // TODO
+  // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
+  glm::dvec3 world_up(0, 1, 0);
+  glm::dvec3 right = glm::cross(up, world_up);
+  glm::dvec3 forward = glm::cross(right, up);
+  return glm::dmat3(right, up, forward);
+}
+
+glm::dvec3 vector_from_spherical(double pitch, double yaw)
+{
+  // TODO
+  return glm::dvec3();
+}
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
@@ -29,28 +44,19 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 
 BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
-  Ray reflected = Ray(surface->point, glm::reflect(incoming.direction, surface->normal));
-  return BRDF::Sample{reflected, surface->material->albedo};
-}
-
-static glm::dvec3 refract(const glm::dvec3& uv, const glm::dvec3& n, double etai_over_etat)
-{
-  double cos_theta = glm::min(glm::dot(-uv, n), 1.0);
-  auto r_out_perp = etai_over_etat * (uv + cos_theta * n);
-  auto r_out_parallel = -glm::sqrt(glm::abs(1.0 - glm::dot(r_out_perp, r_out_perp))) * n;
-  return r_out_perp + r_out_parallel;
+  glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
+  Ray ray = Ray(surface->point, reflected);
+  return BRDF::Sample{ray, surface->material->albedo};
 }
 
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
 {
-  // TODO
-
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
   Ray refracted;
   refracted.origin = surface->point;
-  refracted.direction = refract(-incoming.direction, surface->normal, refraction_index);
+  refracted.direction = glm::refract(incoming.direction, surface->normal, ri);
 
   return BRDF::Sample{refracted, glm::dvec3(1, 1, 1)};
 }
