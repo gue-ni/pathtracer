@@ -12,6 +12,8 @@
 
 #include "scene.h"
 
+void handle_sigterm(int signum);
+
 class Renderer
 {
  public:

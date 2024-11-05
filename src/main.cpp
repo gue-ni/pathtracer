@@ -8,6 +8,9 @@
 #include <memory>
 #include <ratio>
 #include <string>
+#include <signal.h>
+
+
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
@@ -65,6 +68,8 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 
 int main(int argc, char** argv)
 {
+  std::signal(SIGTERM, handle_sigterm);
+
   int samples_per_pixel = 8;
   int max_bounces = 3;
 

@@ -9,6 +9,10 @@
 #define DEBUG_NORMAL    0
 #define COSINE_WEIGHTED 1
 
+void handle_sigterm(int signum) {
+  #pragma omp cancel parallel // Cancel the parallel region
+}
+
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
@@ -29,6 +33,10 @@ void Renderer::render(int samples, int max_bounce)
 
 #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
+
+    #pragma omp cancellation point parallel
+
+
 #if PRINT_PROGRESS
     printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
 #endif
