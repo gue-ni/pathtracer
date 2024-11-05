@@ -10,7 +10,7 @@
 #define COSINE_WEIGHTED 1
 
 void handle_sigterm(int signum) {
-  #pragma omp cancel parallel // Cancel the parallel region
+  #pragma omp cancel for
 }
 
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
@@ -34,7 +34,7 @@ void Renderer::render(int samples, int max_bounce)
 #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 
-    #pragma omp cancellation point parallel
+    #pragma omp cancellation point for
 
 
 #if PRINT_PROGRESS
@@ -60,13 +60,14 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
 
   if (!possible_hit.has_value()) {
     return m_scene->background(ray);
-  } else {
-#if DEBUG_NORMAL
-    return normal_as_color(possible_hit.value().normal);
-#endif
   }
 
   Intersection surface = possible_hit.value();
+
+#if DEBUG_NORMAL
+  return normal_as_color(surface.normal);
+#endif
+
   Material* material = surface.material;
 
   if (depth <= 0) {
