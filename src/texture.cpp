@@ -29,6 +29,7 @@ glm::dvec3 Texture2D::sample(const glm::dvec2& uv) const { return sample(uv.x, u
 
 glm::dvec3 Texture2D::sample(double u, double v) const
 {
+  // TODO: proper bilinear interpolation
   auto p = pixel(u * (m_width - 1), v * (m_height - 1));
   return rgb(p.r, p.g, p.b);
 }

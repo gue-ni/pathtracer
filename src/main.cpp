@@ -4,6 +4,7 @@
 #include "material.h"
 #include "renderer.h"
 #include "scene.h"
+#include "texture.h"
 #include <chrono>
 #include <memory>
 #include <ratio>
@@ -21,6 +22,15 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   auto glass = scene->add_material(Material(Material::TRANSMISSIVE, glm::dvec3(1), glm::dvec3(0)));
   auto pink = scene->add_material(Material(glm::dvec3(1), rgb(252, 15, 192) * 5.0));
   auto mirror = scene->add_material(Material(Material::SPECULAR, glm::dvec3(1), glm::dvec3(0)));
+
+  auto tex = scene->add_material(Material());
+  tex->albedo = glm::dvec3(1,0,0);
+  tex->texture = new Texture2D();
+#if _WIN32
+  tex->texture->load("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/test.png");
+#else
+  tex->texture->load("/home/pi/pathtracer/doc/models/test.png");
+#endif
 
 #if 1
 #if _WIN32
@@ -40,16 +50,15 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   // base
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), white));
 #endif
-#if 1
+#if 0
   // light
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0, 170, 0), 30), emissive));
 #endif
 #if 1
-  // reflective sphere
   scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 0), 20), mirror));
 #endif
 #if 1
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), glass));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), tex));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
