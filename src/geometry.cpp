@@ -37,6 +37,58 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, do
   return true;
 }
 
+glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
+{
+  glm::dvec3 p = glm::normalize(point_on_sphere - center);
+  double theta = std::acos(-p.y);
+  double phi = std::atan2(-p.z, p.x) + pi;
+  double u = phi / (2 * pi);
+  double v = theta / pi;
+  return {u, v};
+}
+
+glm::dvec3 Triangle::barycentric(const glm::dvec3& p) const
+{
+  auto v0v1 = v1 - v0;
+  auto v0v2 = v2 - v0;
+  auto v0p = p - v0;
+
+  double d00 = glm::dot(v0v1, v0v1);
+  double d01 = glm::dot(v0v1, v0v2);
+  double d11 = glm::dot(v0v1, v0v1);
+  double d20 = glm::dot(v0p, v0v1);
+  double d21 = glm::dot(v0p, v0v2);
+
+  double denom = d00 * d11 - d01 * d01;
+  double v = (d11 * d20 - d01 * d21) / denom;
+  double w = (d00 * d21 - d01 * d20) / denom;
+  double u = 1.0 - v - w;
+  return {u, w, v};
+}
+
+glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
+{
+  // TODO
+  glm::dvec3 uvw = barycentric(point_on_triangle);
+  return uvw.x * t0 + uvw.y * t1 + uvw.z * t2;
+}
+
+glm::dvec3 Triangle::normal() const
+{
+  auto v0v1 = v1 - v0;
+  auto v0v2 = v2 - v0;
+  auto normal = glm::cross(v0v1, v0v2);  // N
+  return glm::normalize(normal);
+}
+
+glm::dvec3 Triangle::vertex(size_t i) const
+{
+  assert(i < 3);
+  if (i == 0) return v0;
+  if (i == 1) return v1;
+  return v2;
+}
+
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution.html
 bool ray_vs_triangle(const Ray& r, const Triangle& tri, const Interval<double>& ti, double& t)
 {
@@ -100,8 +152,6 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case SPHERE: {
       if (ray_vs_sphere(ray, sphere, ti, t)) {
         Intersection surface;
-        surface.hit = true;
-        surface.material = material;
         surface.t = t;
         surface.point = ray.point_at(t);
         glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
@@ -114,6 +164,8 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
           surface.normal = normal;
           surface.inside = true;
         }
+        surface.material = material;
+        surface.uv = sphere.texcoord(surface.point);
         return surface;
       } else {
         return std::nullopt;
@@ -122,12 +174,12 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case TRIANGLE: {
       if (ray_vs_triangle(ray, triangle, ti, t)) {
         Intersection surface;
-        surface.hit = true;
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal();
-        surface.material = material;
         surface.inside = false;
+        surface.material = material;
+        surface.uv = triangle.texcoord(surface.point);
         return surface;
       } else {
         return std::nullopt;

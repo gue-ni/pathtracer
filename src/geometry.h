@@ -12,7 +12,6 @@
 #include <vector>
 
 struct Intersection {
-  bool hit;
   double t;
   glm::dvec3 point;
   glm::dvec3 normal;
@@ -28,6 +27,7 @@ struct Sphere {
   glm::dvec3 center;
   double radius;
   Sphere(const glm::dvec3& c, double r) : center(c), radius(r) {}
+  glm::dvec2 texcoord(const glm::dvec3& point_on_sphere) const;
 };
 
 bool ray_vs_sphere(const Ray&, const Sphere&, double& t);
@@ -36,22 +36,13 @@ bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti,
 // vertex order is counter-clockwise
 struct Triangle {
   glm::dvec3 v0, v1, v2;
+  glm::dvec2 t0, t1, t2;
   Triangle() {}
   Triangle(const glm::dvec3& _v0, const glm::dvec3& _v1, const glm::dvec3& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
-  inline glm::dvec3 normal() const
-  {
-    auto v0v1 = v1 - v0;
-    auto v0v2 = v2 - v0;
-    auto normal = glm::cross(v0v1, v0v2);  // N
-    return glm::normalize(normal);
-  }
-  inline glm::dvec3 vertex(size_t i) const
-  {
-    assert(i < 3);
-    if (i == 0) return v0;
-    if (i == 1) return v1;
-    return v2;
-  }
+  glm::dvec3 barycentric(const glm::dvec3& point) const;
+  glm::dvec2 texcoord(const glm::dvec3& point_on_triangle) const;
+  glm::dvec3 normal() const;
+  glm::dvec3 vertex(size_t i) const;
 };
 
 bool ray_vs_triangle(const Ray&, const Triangle&, const Interval<double>& ti, double& t);
@@ -74,4 +65,3 @@ struct Primitive {
 std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives);
 
 void print_stats();
-
