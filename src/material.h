@@ -17,6 +17,8 @@ struct Material {
   glm::dvec3 albedo;
   glm::dvec3 emittance;
   double refraction_index = 1.52;
+  double metallic;
+  double roughtness;
 
   Material() : Material(DIFFUSE, glm::dvec3(0.0), glm::dvec3(0.0)) {}
   Material(const glm::dvec3& a) : Material(DIFFUSE, a, glm::dvec3(0.0)) {}
