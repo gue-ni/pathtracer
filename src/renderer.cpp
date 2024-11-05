@@ -2,6 +2,7 @@
 #include "geometry.h"
 #include "material.h"
 #include <atomic>
+#include <omp.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -33,6 +34,11 @@ Renderer::~Renderer()
 
 void Renderer::render(int samples, int max_bounce)
 {
+  bool cancel_enabled = omp_get_cancellation();
+  if (!cancel_enabled) {
+    fprintf(stderr, "omp cancel is not enabled\n");
+  }
+
   #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 
