@@ -2,9 +2,9 @@
 
 #include <cstdint>
 #include <glm/glm.hpp>
-#include "glm/fwd.hpp"
 
 #include "ray.h"
+#include "texture.h"
 
 struct Intersection;
 
@@ -16,6 +16,7 @@ struct Material {
   };
   Type type = DIFFUSE;
   glm::dvec3 albedo;
+  Texture2D *texture = nullptr;
   glm::dvec3 emittance;
   double refraction_index = .5;
   Material() : Material(DIFFUSE, glm::dvec3(0.0), glm::dvec3(0.0)) {}

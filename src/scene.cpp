@@ -67,6 +67,7 @@ glm::dvec3 Scene::center() const { return m_center; }
 
 struct Vertex {
   glm::dvec3 pos;
+  glm::dvec2 uv;
   int material_id;
 };
 
@@ -127,14 +128,21 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
         // access to vertex
         tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
+        Vertex vertex;
+
         tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
         tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
         tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+        vertex.pos = {vx, vy, vz};
 
-        Vertex vert;
-        vert.pos = glm::dvec3(vx, vy, vz);
-        vert.material_id = material_id;
-        vertices.push_back(vert);
+        if (idx.texcoord_index >= 0) {
+          tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
+          tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+          vertex.uv = {tx, ty};
+        }
+
+        vertex.material_id = material_id;
+        vertices.push_back(vertex);
       }
       index_offset += fv;
     }

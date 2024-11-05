@@ -16,12 +16,13 @@ struct Intersection {
   double t;
   glm::dvec3 point;
   glm::dvec3 normal;
+  glm::dvec2 uv;
   Material* material;
   bool inside;
   inline bool is_closer_than(const Intersection& other) const { return t < other.t; }
 };
 
-std::optional<Intersection> closest(const std::optional<Intersection> a, const std::optional<Intersection> b);
+std::optional<Intersection> closest(const std::optional<Intersection>& a, const std::optional<Intersection>& b);
 
 struct Sphere {
   glm::dvec3 center;

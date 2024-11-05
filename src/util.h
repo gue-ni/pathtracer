@@ -25,7 +25,11 @@ struct Interval {
   }
 };
 
-inline glm::dvec3 rgb(int r, int g, int b) { return glm::dvec3(double(r), double(g), double(b)) / 255.0; }
+template <typename Byte>
+inline glm::dvec3 rgb(Byte r, Byte g, Byte b)
+{
+  return glm::dvec3(double(r), double(g), double(b)) / 255.0;
+}
 
 inline double random_double()
 {
