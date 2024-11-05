@@ -3,14 +3,17 @@
 #include "geometry.h"
 #include "util.h"
 
-glm::dmat3 local_to_world(const glm::dvec3& normal) 
+glm::dmat3 local_to_world(const glm::dvec3& up)
 {
   // TODO
   // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
-  return glm::dmat3();
+  glm::dvec3 world_up(0, 1, 0);
+  glm::dvec3 right = glm::cross(up, world_up);
+  glm::dvec3 forward = glm::cross(right, up);
+  return glm::dmat3(right, up, forward);
 }
 
-glm::dvec3 vector_from_spherical(double pitch, double yaw) 
+glm::dvec3 vector_from_spherical(double pitch, double yaw)
 {
   // TODO
   return glm::dvec3();
@@ -41,8 +44,9 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 
 BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
-  Ray reflected = Ray(surface->point, glm::reflect(incoming.direction, surface->normal));
-  return BRDF::Sample{reflected, surface->material->albedo};
+  glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
+  Ray ray = Ray(surface->point, reflected);
+  return BRDF::Sample{ray, surface->material->albedo};
 }
 
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
