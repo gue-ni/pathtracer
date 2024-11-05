@@ -14,7 +14,6 @@
 std::atomic<bool> cancel = false;
 
 void handle_sigterm(int signum) {
-  //#pragma omp cancel for
   cancel = true;
 }
 
@@ -39,7 +38,9 @@ void Renderer::render(int samples, int max_bounce)
     fprintf(stderr, "omp cancel is not enabled\n");
   }
 
-  #pragma omp parallel for schedule(dynamic, 1)
+  #pragma omp parallel
+  {
+  #pragma omp for
   for (int y = 0; y < m_camera->height(); y++) {
 
     if (cancel) {
@@ -60,6 +61,7 @@ void Renderer::render(int samples, int max_bounce)
 
       m_buffer[y * m_camera->width() + x] = color /  double(samples);
     }
+  }
   }
 }
 
