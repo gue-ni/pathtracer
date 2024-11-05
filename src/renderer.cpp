@@ -36,7 +36,6 @@ void Renderer::render(int samples, int max_bounce)
   #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
 
-    #pragma omp cancellation point for
     if (cancel) {
       #pragma omp cancel for
     }
