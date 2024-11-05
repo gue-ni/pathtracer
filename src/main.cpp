@@ -8,7 +8,7 @@
 #include <memory>
 #include <ratio>
 #include <string>
-<csignal>
+#include <csignal>
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
