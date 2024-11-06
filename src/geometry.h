@@ -39,7 +39,6 @@ struct Triangle {
   glm::dvec2 t0, t1, t2;
   Triangle() {}
   Triangle(const glm::dvec3& _v0, const glm::dvec3& _v1, const glm::dvec3& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
-  glm::dvec3 barycentric(const glm::dvec3& point) const;
   glm::dvec2 texcoord(const glm::dvec3& point_on_triangle) const;
   glm::dvec3 normal() const;
   glm::dvec3 vertex(size_t i) const;

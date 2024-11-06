@@ -47,8 +47,13 @@ glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
   return {u, v};
 }
 
-glm::dvec3 Triangle::barycentric(const glm::dvec3& p) const
+
+
+glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
 {
+  // TODO: fix this
+
+  auto p = point_on_triangle;
   auto v0v1 = v1 - v0;
   auto v0v2 = v2 - v0;
   auto v0p = p - v0;
@@ -63,14 +68,9 @@ glm::dvec3 Triangle::barycentric(const glm::dvec3& p) const
   double v = (d11 * d20 - d01 * d21) / denom;
   double w = (d00 * d21 - d01 * d20) / denom;
   double u = 1.0 - v - w;
-  return {u, w, v};
-}
 
-glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
-{
-  // TODO
-  glm::dvec3 uvw = barycentric(point_on_triangle);
-  return uvw.x * t0 + uvw.y * t1 + uvw.z * t2;
+  //return u * t0 + v * t1 + w * t2;
+  return {0,0};
 }
 
 glm::dvec3 Triangle::normal() const

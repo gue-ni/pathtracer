@@ -4,6 +4,7 @@
 #include "aabb.h"
 #include "geometry.h"
 #include <glm/glm.hpp>
+#include "texture.h"
 #include "tiny_obj_loader.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -38,7 +39,7 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
-#if 1
+#if 0
   // sky
   double a = 0.5 * (r.direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
@@ -107,6 +108,22 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     Material material;
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
+
+    if (!m.diffuse_texname.empty()) {
+      auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
+
+      Texture2D* texture = new Texture2D();
+      if (!texture->load(diffuse_texname)) {
+        std::cerr << "Failed to load " << diffuse_texname << std::endl;
+      } else {
+        std::cout << "Loaded texture " << diffuse_texname << std::endl;
+        std::cout << texture->width() << ", " << texture->height() << ", " << texture->channels() << std::endl;
+      }
+
+      //material.albedo = glm::dvec3(0,1,1);
+      material.texture = texture;
+    }
+
     (void)add_material(material);
   }
 #endif
@@ -139,6 +156,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
           tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
           tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
           vertex.uv = {tx, ty};
+          std::cout << vertex.uv << std::endl;
         }
 
         vertex.material_id = material_id;
@@ -163,6 +181,11 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     auto v0 = vertices[i * 3 + 0].pos;
     auto v1 = vertices[i * 3 + 1].pos;
     auto v2 = vertices[i * 3 + 2].pos;
+    auto t0 = vertices[i * 3 + 0].uv;
+    auto t1 = vertices[i * 3 + 1].uv;
+    auto t2 = vertices[i * 3 + 2].uv;
+
+
     Triangle tri(v0, v1, v2);
 
     if (mtls.empty()) {

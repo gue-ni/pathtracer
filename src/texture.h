@@ -12,6 +12,9 @@ class Texture2D
   bool load(const std::filesystem::path& path);
   glm::dvec3 sample(double u, double v) const;
   glm::dvec3 sample(const glm::dvec2& uv) const;
+  int width() const { return m_width; }
+  int height() const { return m_height; }
+  int channels() const { return m_channels; }
 
  private:
   unsigned char* m_data;
