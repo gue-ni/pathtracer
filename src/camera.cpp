@@ -8,7 +8,7 @@ Camera::Camera(int width, int height)
       m_world_up(0.0, 1.0, 0.0),
       m_forward(0.0, 0.0, -1.0),
       m_position(0.0, 0.0, 0.0),
-      m_fov(glm::radians(45.0))
+      m_fov(glm::radians(20.0))
 {
   compute();
 }

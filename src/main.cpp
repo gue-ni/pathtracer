@@ -61,7 +61,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  camera->set_position(glm::dvec3(0, 50, 100));
+  camera->set_position(glm::dvec3(0, 50, 230));
 
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;
