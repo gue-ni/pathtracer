@@ -13,7 +13,13 @@ static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
 
-Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
+Renderer::Renderer(Camera* camera, Scene* scene)
+    : m_camera(camera),
+      m_scene(scene)
+#if !USE_OPENMP
+      ,
+      m_threads(8)
+#endif
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
 }
@@ -25,24 +31,34 @@ Renderer::~Renderer()
 
 void Renderer::render(int samples, int max_bounce)
 {
-  double sample_weight = 1.0 / double(samples);
-
+#if USE_OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
+#endif
   for (int y = 0; y < m_camera->height(); y++) {
 #if PRINT_PROGRESS
     printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
 #endif
 
-    for (int x = 0; x < m_camera->width(); x++) {
-      glm::dvec3 color(0.0);
+#if USE_OPENMP
+    render_row(samples, max_bounce, y);
+#else
+    auto task = [this, samples, max_bounce, y]() { render_row(samples, max_bounce, y); };
+    m_threads.push_task(task);
+#endif
+  }
+}
 
-      for (int s = 0; s < samples; s++) {
-        Ray ray = m_camera->get_ray(x, y);
-        color += trace_ray(ray, max_bounce);
-      }
+void Renderer::render_row(int samples, int max_bounce, int row)
+{
+  for (int x = 0; x < m_camera->width(); x++) {
+    glm::dvec3 color(0.0);
 
-      m_buffer[y * m_camera->width() + x] = color * sample_weight;
+    for (int s = 0; s < samples; s++) {
+      Ray ray = m_camera->get_ray(x, row);
+      color += trace_ray(ray, max_bounce);
     }
+
+    m_buffer[row * m_camera->width() + x] = color / double(samples);
   }
 }
 

@@ -6,11 +6,13 @@
 #include <atomic>
 
 #include "camera.h"
+#include "threading.h"
+#include "scene.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 #include <glm/glm.hpp>
 
-#include "scene.h"
+#define USE_OPENMP 1
 
 class Renderer
 {
@@ -19,10 +21,15 @@ class Renderer
   ~Renderer();
   void render(int samples, int max_bounce);
   glm::dvec3 trace_ray(const Ray &ray, int depth);
-  void save_image(const char* path);
+  void save_image(const char *path);
 
  private:
   glm::dvec3 *m_buffer;
   Camera *m_camera;
   Scene *m_scene;
+#if !USE_OPENMP
+  ThreadPool m_threads;
+#endif
+
+  void render_row(int samples, int max_bounce, int row);
 };
