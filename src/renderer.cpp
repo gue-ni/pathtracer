@@ -80,13 +80,17 @@ void Renderer::save_image(const char* path)
 
   Texture2D output(m_camera->width(), m_camera->height(), 3);
 
-  for (int i = 0; i < m_camera->width() * m_camera->height(); i++) {
-    glm::dvec3 color = m_buffer[i];
-    glm::u8vec3 pixel = map_pixel(color);
-    output.write_pixel(x, y, glm::value_ptr(color));
-    pixels.push_back(map_pixel(color.r));
-    pixels.push_back(map_pixel(color.g));
-    pixels.push_back(map_pixel(color.b));
+  for (int y = 0; y < m_camera->height(); y++) {
+    for (int x = 0; x < m_camera->width(); x++) {
+      glm::dvec3 color = m_buffer[y * m_camera->width() + x];
+      glm::u8vec3 pixel = map_pixel(color);
+
+      output.write_pixel(x, y, glm::value_ptr(color));
+      
+      pixels.push_back(map_pixel(color.r));
+      pixels.push_back(map_pixel(color.g));
+      pixels.push_back(map_pixel(color.b));
+    }
   }
 
   output.write(std::filesystem::path(path));
