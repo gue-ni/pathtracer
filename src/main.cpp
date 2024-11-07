@@ -8,7 +8,6 @@
 #include <chrono>
 #include <memory>
 #include <ratio>
-#include <filesystem>
 #include <string>
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()

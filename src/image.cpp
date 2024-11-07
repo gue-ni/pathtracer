@@ -37,9 +37,9 @@ bool Image::write(const std::filesystem::path& path) const
 
 glm::u8vec3 Image::pixel(int x, int y) const
 {
+  assert(valid());
   assert(0 <= x && x < m_width);
   assert(0 <= y && y < m_height);
-  assert(valid());
   int i = (y * m_width + x) * 3;
   return glm::u8vec3(m_data[i + 0], m_data[i + 1], m_data[i + 2]);
 }
@@ -47,6 +47,8 @@ glm::u8vec3 Image::pixel(int x, int y) const
 void Image::write_pixel(int x, int y, unsigned char* pixel)
 {
   assert(valid());
+  assert(0 <= x && x < m_width);
+  assert(0 <= y && y < m_height);
   int i = (y * m_width + x) * 3;
   for (int c = 0; c < m_channels; c++) {
     m_data[i + c] = pixel[c];
@@ -57,13 +59,15 @@ glm::dvec3 Image::sample(const glm::dvec2& uv) const { return sample(uv.x, uv.y)
 
 glm::dvec3 Image::sample(double u, double v) const
 {
-  if (!((0 <= u && u <= 1) && (0 <= v && v <= 1))) {
-    std::cout << u << ", " << v << std::endl;
-  }
-  assert(0 <= u && u <= 1);
-  assert(0 <= v && v <= 1);
   assert(valid());
-#if 0
+  // assert(0 <= u && u <= 1);
+  // assert(0 <= v && v <= 1);
+
+  if (!((0 <= u && u <= 1) && (0 <= v && v <= 1))) {
+    return glm::dvec3(1, 0, 1);
+  }
+
+#if 1
   return glm::dvec3(u, v, 1);
 #else
   // TODO: proper bilinear interpolation
@@ -79,3 +83,5 @@ void Image::free_data()
     m_data = nullptr;
   }
 }
+
+bool Image::valid() const { return (m_data != nullptr) && (0 < m_width) && (0 < m_height) && (0 < m_channels); }

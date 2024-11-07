@@ -18,7 +18,7 @@ class Image
   int height() const { return m_height; }
   int channels() const { return m_channels; }
   void write_pixel(int x, int y, unsigned char* pixel);
-  bool valid() const { return m_data && m_width && m_height && m_channels; }
+  bool valid() const;
 
  private:
   unsigned char* m_data;
