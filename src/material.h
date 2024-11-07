@@ -14,11 +14,15 @@ struct Material {
     SPECULAR,
     TRANSMISSIVE,
   };
+
   Type type = DIFFUSE;
   glm::dvec3 albedo;
   Texture2D *texture = nullptr;
   glm::dvec3 emittance;
-  double refraction_index = .5;
+  double refraction_index = 1.52;
+  double metallic;
+  double roughtness;
+
   Material() : Material(DIFFUSE, glm::dvec3(0.0), glm::dvec3(0.0)) {}
   Material(const glm::dvec3& a) : Material(DIFFUSE, a, glm::dvec3(0.0)) {}
   Material(const glm::dvec3& a, const glm::dvec3& r) : type(DIFFUSE), albedo(a), emittance(r) {}

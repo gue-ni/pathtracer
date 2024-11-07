@@ -46,7 +46,6 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 0
-  // base
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), white));
 #endif
 #if 0
