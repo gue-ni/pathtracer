@@ -4,12 +4,12 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 
-class Texture2D
+class Image
 {
  public:
-  Texture2D();
-  Texture2D(int width, int height, int channels);
-  ~Texture2D();
+  Image();
+  Image(int width, int height, int channels);
+  ~Image();
   bool load(const std::filesystem::path& path);
   bool write(const std::filesystem::path& path) const;
   glm::dvec3 sample(double u, double v) const;
@@ -24,4 +24,5 @@ class Texture2D
   unsigned char* m_data;
   int m_width, m_height, m_channels;
   glm::u8vec3 pixel(int x, int y) const;
+  void free_data();
 };

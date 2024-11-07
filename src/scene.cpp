@@ -4,7 +4,7 @@
 #include "aabb.h"
 #include "geometry.h"
 #include <glm/glm.hpp>
-#include "texture.h"
+#include "image.h"
 #include "tiny_obj_loader.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -112,7 +112,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     if (!m.diffuse_texname.empty()) {
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
 
-      Texture2D* texture = new Texture2D();
+      Image* texture = new Image();
       if (!texture->load(diffuse_texname)) {
         std::cerr << "Failed to load " << diffuse_texname << std::endl;
       } else {

@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "ray.h"
-#include "texture.h"
+#include "image.h"
 
 struct Intersection;
 
@@ -17,7 +17,7 @@ struct Material {
 
   Type type = DIFFUSE;
   glm::dvec3 albedo;
-  Texture2D *texture = nullptr;
+  Image *texture = nullptr;
   glm::dvec3 emittance;
   double refraction_index = 1.52;
   double metallic;

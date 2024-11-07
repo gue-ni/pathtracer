@@ -4,7 +4,7 @@
 #include "material.h"
 #include "renderer.h"
 #include "scene.h"
-#include "texture.h"
+#include "image.h"
 #include <chrono>
 #include <memory>
 #include <ratio>
@@ -32,7 +32,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 
   auto tex = scene->add_material(Material());
   tex->albedo = glm::dvec3(1, 0, 0);
-  tex->texture = new Texture2D();
+  tex->texture = new Image();
   tex->texture->load(models / std::filesystem::path("uv-test.png"));
 
 #if 1

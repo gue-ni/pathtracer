@@ -1,18 +1,16 @@
 #include "renderer.h"
 #include "geometry.h"
 #include "material.h"
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include <glm/gtc/type_ptr.hpp>
 
 #define PRINT_PROGRESS  1
 #define DEBUG_NORMAL    0
 #define COSINE_WEIGHTED 1
 
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
-static glm::u8vec3 map_pixel(const glm::dvec3 color) 
-{ 
-  return { map_pixel(color.r), map_pixel(color.g), map_pixel(color.b) }; 
+static glm::u8vec3 map_pixel(const glm::dvec3 color)
+{
+  return {map_pixel(color.r), map_pixel(color.g), map_pixel(color.b)};
 }
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
@@ -78,15 +76,15 @@ void Renderer::save_image(const char* path)
 {
   std::vector<unsigned char> pixels;
 
-  Texture2D output(m_camera->width(), m_camera->height(), 3);
+  Image output(m_camera->width(), m_camera->height(), 3);
 
   for (int y = 0; y < m_camera->height(); y++) {
     for (int x = 0; x < m_camera->width(); x++) {
       glm::dvec3 color = m_buffer[y * m_camera->width() + x];
       glm::u8vec3 pixel = map_pixel(color);
 
-      output.write_pixel(x, y, glm::value_ptr(color));
-      
+      output.write_pixel(x, y, glm::value_ptr(pixel));
+
       pixels.push_back(map_pixel(color.r));
       pixels.push_back(map_pixel(color.g));
       pixels.push_back(map_pixel(color.b));
@@ -94,10 +92,4 @@ void Renderer::save_image(const char* path)
   }
 
   output.write(std::filesystem::path(path));
-
-  if (stbi_write_png(path, m_camera->width(), m_camera->height(), 3, pixels.data(), m_camera->width() * 3)) {
-    fprintf(stdout, "Image '%s' saved successfully!\n", path);
-  } else {
-    fprintf(stderr, "Failed to save image!\n");
-  }
 }
