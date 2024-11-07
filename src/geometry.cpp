@@ -160,7 +160,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.t = t;
         surface.point = ray.point_at(t);
         glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
-        if (dot(ray.direction, normal) > 0.0) {
+        if (glm::dot(ray.direction, normal) > 0.0) {
           // ray is inside the sphere
           surface.normal = -normal;
           surface.inside = false;
