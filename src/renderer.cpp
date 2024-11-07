@@ -74,6 +74,8 @@ void Renderer::save_image(const char* path)
 {
   std::vector<unsigned char> pixels;
 
+  Texture2D output(m_camera->width(), m_camera->height(), 3);
+
   for (int i = 0; i < m_camera->width() * m_camera->height(); i++) {
     glm::dvec3 color = m_buffer[i];
     pixels.push_back(map_pixel(color.r));
