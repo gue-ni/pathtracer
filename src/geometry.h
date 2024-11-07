@@ -28,10 +28,8 @@ struct Sphere {
   double radius;
   Sphere(const glm::dvec3& c, double r) : center(c), radius(r) {}
   glm::dvec2 texcoord(const glm::dvec3& point_on_sphere) const;
+  bool intersect(const Ray& r, const Interval<double>& ti, double& t) const;
 };
-
-bool ray_vs_sphere(const Ray&, const Sphere&, double& t);
-bool ray_vs_sphere_v2(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t);
 
 // vertex order is counter-clockwise
 struct Triangle {
@@ -42,8 +40,10 @@ struct Triangle {
   glm::dvec2 texcoord(const glm::dvec3& point_on_triangle) const;
   glm::dvec3 normal() const;
   glm::dvec3 vertex(size_t i) const;
+  bool intersect(const Ray& r, const Interval<double>& ti, double& t) const;
 };
 
+bool ray_vs_sphere(const Ray&, const Sphere&, const Interval<double>& ti, double& t);
 bool ray_vs_triangle(const Ray&, const Triangle&, const Interval<double>& ti, double& t);
 
 struct Primitive {
@@ -60,7 +60,5 @@ struct Primitive {
   Primitive(const Triangle& t, Material* m) : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t)) {}
   std::optional<Intersection> intersect(const Ray&) const;
 };
-
-std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives);
 
 void print_stats();

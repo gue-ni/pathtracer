@@ -37,6 +37,11 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, do
   return true;
 }
 
+bool Sphere::intersect(const Ray& r, const Interval<double>& ti, double& t) const 
+{
+  return ray_vs_sphere(r, *this, ti, t);
+}
+
 glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
 {
   glm::dvec3 p = glm::normalize(point_on_sphere - center);
@@ -45,6 +50,11 @@ glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
   double u = phi / (2 * pi);
   double v = theta / pi;
   return {u, v};
+}
+
+bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) const 
+{
+  return ray_vs_triangle(r, *this, ti, t);
 }
 
 static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double &u, double &v, double &w)
@@ -145,7 +155,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   Interval<double> ti(0.001, 1e9);
   switch (type) {
     case SPHERE: {
-      if (ray_vs_sphere(ray, sphere, ti, t)) {
+      if (sphere.intersect(ray, ti, t)) {
         Intersection surface;
         surface.t = t;
         surface.point = ray.point_at(t);
@@ -167,7 +177,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
       }
     }
     case TRIANGLE: {
-      if (ray_vs_triangle(ray, triangle, ti, t)) {
+      if (triangle.intersect(ray, ti, t)) {
         Intersection surface;
         surface.t = t;
         surface.point = ray.point_at(t);
@@ -183,11 +193,6 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     default:
       return std::nullopt;
   }
-}
-
-std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives)
-{
-  return std::nullopt;
 }
 
 std::optional<Intersection> closest(const std::optional<Intersection>& a, const std::optional<Intersection>& b)
