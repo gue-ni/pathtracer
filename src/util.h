@@ -85,3 +85,13 @@ class OrthonormalBasis
  private:
   std::array<glm::dvec3, 3> axis;
 };
+
+inline glm::dvec3 gamma_correction(const glm::dvec3 color, double gamma = 2.2) 
+{
+  return glm::pow(color, glm::dvec3(1.0 / gamma));
+}
+
+inline glm::dvec3 reverse_gamma_correction(const glm::dvec3 color, double gamma = 2.2)
+{
+  return glm::pow(color, glm::dvec3(gamma));
+}
