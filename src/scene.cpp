@@ -67,8 +67,8 @@ void Scene::compute_bvh() { bvh = std::make_unique<BVH>(primitives); }
 glm::dvec3 Scene::center() const { return m_center; }
 
 struct Vertex {
-  glm::dvec3 pos;
-  glm::dvec2 uv;
+  glm::dvec3 pos{};
+  glm::dvec2 uv{};
   int material_id;
 };
 
@@ -120,7 +120,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
         std::cout << texture->width() << ", " << texture->height() << ", " << texture->channels() << std::endl;
       }
 
-      //material.albedo = glm::dvec3(0,1,1);
+      // material.albedo = glm::dvec3(0,1,1);
       material.texture = texture;
     }
 
@@ -153,10 +153,12 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
         vertex.pos = {vx, vy, vz};
 
         if (idx.texcoord_index >= 0) {
-          tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
-          tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
+          tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+          tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
           vertex.uv = {tx, ty};
           std::cout << vertex.uv << std::endl;
+        } else {
+          vertex.uv = {0, 0};
         }
 
         vertex.material_id = material_id;
@@ -178,15 +180,13 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
   size_t triangle_count = vertices.size() / 3;
 
   for (size_t i = 0; i < triangle_count; i++) {
-    auto v0 = vertices[i * 3 + 0].pos;
-    auto v1 = vertices[i * 3 + 1].pos;
-    auto v2 = vertices[i * 3 + 2].pos;
-    auto t0 = vertices[i * 3 + 0].uv;
-    auto t1 = vertices[i * 3 + 1].uv;
-    auto t2 = vertices[i * 3 + 2].uv;
-
-
-    Triangle tri(v0, v1, v2);
+    Triangle tri;
+    tri.v0 = vertices[i * 3 + 0].pos;
+    tri.v1 = vertices[i * 3 + 1].pos;
+    tri.v2 = vertices[i * 3 + 2].pos;
+    tri.t0 = vertices[i * 3 + 0].uv;
+    tri.t1 = vertices[i * 3 + 1].uv;
+    tri.t2 = vertices[i * 3 + 2].uv;
 
     if (mtls.empty()) {
       triangles.push_back(Primitive(tri, default_material));

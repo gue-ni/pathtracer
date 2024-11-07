@@ -83,7 +83,7 @@ void Renderer::save_image(const char* path)
       glm::dvec3 color = m_buffer[y * m_camera->width() + x];
       glm::u8vec3 pixel = map_pixel(color);
 
-      output.write_pixel(x, y, glm::value_ptr(pixel));
+      output.set_pixel(x, y, glm::value_ptr(pixel));
 
       pixels.push_back(map_pixel(color.r));
       pixels.push_back(map_pixel(color.g));

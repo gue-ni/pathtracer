@@ -7,7 +7,8 @@
 #include <vector>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
-#include "glm/exponential.hpp"
+#include <glm/gtx/io.hpp>
+#include <glm/exponential.hpp>
 
 #define ENABLE_COUNTER 1
 #if ENABLE_COUNTER
@@ -37,7 +38,7 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, do
   return true;
 }
 
-bool Sphere::intersect(const Ray& r, const Interval<double>& ti, double& t) const 
+bool Sphere::intersect(const Ray& r, const Interval<double>& ti, double& t) const
 {
   return ray_vs_sphere(r, *this, ti, t);
 }
@@ -52,7 +53,7 @@ glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
   return {u, v};
 }
 
-bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) const 
+bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) const
 {
   return ray_vs_triangle(r, *this, ti, t);
 }
@@ -184,7 +185,9 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.normal = triangle.normal();
         surface.inside = false;
         surface.material = material;
-        surface.uv = triangle.texcoord(surface.point);
+        if (surface.material->texture) {
+          surface.uv = triangle.texcoord(surface.point);
+        }
         return surface;
       } else {
         return std::nullopt;
