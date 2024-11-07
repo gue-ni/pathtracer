@@ -47,30 +47,25 @@ glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
   return {u, v};
 }
 
-
+static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double &u, double &v, double &w)
+{
+  auto v0 = b - a, v1 = c - a, v2 = p - a;
+  double d00 = glm::dot(v0, v0);
+  double d01 = glm::dot(v0, v1);
+  double d11 = glm::dot(v1, v1);
+  double d20 = glm::dot(v2, v0);
+  double d21 = glm::dot(v2, v1);
+  double inv_denom = 1.0 / (d00 * d11 - d01 * d01);
+  v = (d11 * d20 - d01 * d21) * inv_denom;
+  w = (d00 * d21 - d01 * d20) * inv_denom;
+  u = 1.0 - v - w;
+}
 
 glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
 {
-  // TODO: fix this
-
-  auto p = point_on_triangle;
-  auto v0v1 = v1 - v0;
-  auto v0v2 = v2 - v0;
-  auto v0p = p - v0;
-
-  double d00 = glm::dot(v0v1, v0v1);
-  double d01 = glm::dot(v0v1, v0v2);
-  double d11 = glm::dot(v0v1, v0v1);
-  double d20 = glm::dot(v0p, v0v1);
-  double d21 = glm::dot(v0p, v0v2);
-
-  double denom = d00 * d11 - d01 * d01;
-  double v = (d11 * d20 - d01 * d21) / denom;
-  double w = (d00 * d21 - d01 * d20) / denom;
-  double u = 1.0 - v - w;
-
-  //return u * t0 + v * t1 + w * t2;
-  return {0,0};
+  double u, v, w;
+  barycentric(v0, v1, v2, point_on_triangle, u, v, w);
+  return u * t0 + v * t1 + w * t2;
 }
 
 glm::dvec3 Triangle::normal() const
