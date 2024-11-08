@@ -81,12 +81,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   auto scene = std::make_unique<Scene>();
 
   for (const std::string path : config.models) {
-    std::cout << "Load Mesh: " << path << std::endl;
     auto mesh = scene->load_obj(path);
-
     AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
     std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
-
     scene->add_primitives(mesh.begin(), mesh.end());
   }
 
