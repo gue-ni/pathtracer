@@ -13,12 +13,6 @@ glm::dmat3 local_to_world(const glm::dvec3& up)
   return glm::dmat3(right, up, forward);
 }
 
-glm::dvec3 vector_from_spherical(double pitch, double yaw)
-{
-  // TODO
-  return glm::dvec3();
-}
-
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
 BRDF::Sample BRDF::sample(const Ray& incoming)
@@ -38,7 +32,14 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
   Ray scattered = Ray(surface->point, cosine_weighted_sampling(surface->normal));
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
-  glm::dvec3 brdf_value = surface->material->albedo / pi;
+
+  glm::dvec3 albedo = surface->material->albedo;
+  if (surface->material->texture) {
+    // image textures are generally sRGB, so we need to convert them to linear space
+    albedo = reverse_gamma_correction(surface->material->texture->sample(surface->uv));
+  }
+
+  glm::dvec3 brdf_value = albedo / pi;
   return BRDF::Sample{scattered, brdf_value * cos_theta / pdf};
 }
 

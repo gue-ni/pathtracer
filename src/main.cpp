@@ -4,6 +4,7 @@
 #include "material.h"
 #include "renderer.h"
 #include "scene.h"
+#include "image.h"
 #include <chrono>
 #include <memory>
 #include <ratio>
@@ -12,6 +13,12 @@
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
 {
   auto scene = std::make_unique<Scene>();
+
+#if _WIN32
+  std::filesystem::path models = "C:/Users/jakob/Documents/Projects/pathtracer/doc/models";
+#else
+  std::filesystem::path models = "/home/pi/pathtracer/doc/models";
+#endif
 
   auto white = scene->add_material(Material(glm::dvec3(1.0)));
   auto red = scene->add_material(Material(glm::dvec3(.77, 0, 0)));
@@ -22,12 +29,13 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   auto pink = scene->add_material(Material(glm::dvec3(1), rgb(252, 15, 192) * 5.0));
   auto mirror = scene->add_material(Material(Material::SPECULAR, glm::dvec3(1), glm::dvec3(0)));
 
+  auto tex = scene->add_material(Material());
+  tex->albedo = glm::dvec3(1, 0, 0);
+  tex->texture = new Image();
+  tex->texture->load(models / std::filesystem::path("uv-test.png"));
+
 #if 1
-#if _WIN32
-  auto mesh = scene->load_obj("C:/Users/jakob/Documents/Projects/pathtracer/doc/models/cornell_box.obj");
-#else
-  auto mesh = scene->load_obj("/home/pi/pathtracer/doc/models/cornell_box.obj");
-#endif
+  auto mesh = scene->load_obj(models / std::filesystem::path("cornell_box.obj"));
 
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
   std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
@@ -40,18 +48,18 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0.0, -1e6, 0.0), 1e6), white));
 #endif
 #if 0
+  // light
   scene->add_primitive(Primitive(Sphere(glm::dvec3(0, 170, 0), 30), emissive));
 #endif
 #if 1
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 10), 20), mirror));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(+70, 20, 0), 20), mirror));
 #endif
 #if 1
-  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 10), 20), glass));
+  scene->add_primitive(Primitive(Sphere(glm::dvec3(-70, 20, 0), 20), tex));
 #endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(640, 360);
-  //camera->set_position(glm::dvec3(0, 50, 100));
-  camera->look_at(glm::dvec3(0, 50, 100), glm::dvec3(0, 50, 20));
+  camera->set_position(glm::dvec3(0, 50, 230));
 
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;

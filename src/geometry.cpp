@@ -7,7 +7,8 @@
 #include <vector>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
-#include "glm/exponential.hpp"
+#include <glm/gtx/io.hpp>
+#include <glm/exponential.hpp>
 
 #define ENABLE_COUNTER 1
 #if ENABLE_COUNTER
@@ -35,6 +36,64 @@ bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, do
 
   t = root;
   return true;
+}
+
+bool Sphere::intersect(const Ray& r, const Interval<double>& ti, double& t) const
+{
+  return ray_vs_sphere(r, *this, ti, t);
+}
+
+glm::dvec2 Sphere::texcoord(const glm::dvec3& point_on_sphere) const
+{
+  glm::dvec3 p = glm::normalize(point_on_sphere - center);
+  double theta = std::acos(-p.y);
+  double phi = std::atan2(-p.z, p.x) + pi;
+  double u = phi / (2 * pi);
+  double v = theta / pi;
+  return {u, v};
+}
+
+bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) const
+{
+  return ray_vs_triangle(r, *this, ti, t);
+}
+
+static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double& u,
+                        double& v, double& w)
+{
+  auto v0 = b - a, v1 = c - a, v2 = p - a;
+  double d00 = glm::dot(v0, v0);
+  double d01 = glm::dot(v0, v1);
+  double d11 = glm::dot(v1, v1);
+  double d20 = glm::dot(v2, v0);
+  double d21 = glm::dot(v2, v1);
+  double inv_denom = 1.0 / (d00 * d11 - d01 * d01);
+  v = (d11 * d20 - d01 * d21) * inv_denom;
+  w = (d00 * d21 - d01 * d20) * inv_denom;
+  u = 1.0 - v - w;
+}
+
+glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
+{
+  double u, v, w;
+  barycentric(v0, v1, v2, point_on_triangle, u, v, w);
+  return u * t0 + v * t1 + w * t2;
+}
+
+glm::dvec3 Triangle::normal() const
+{
+  auto v0v1 = v1 - v0;
+  auto v0v2 = v2 - v0;
+  auto normal = glm::cross(v0v1, v0v2);  // N
+  return glm::normalize(normal);
+}
+
+glm::dvec3 Triangle::vertex(size_t i) const
+{
+  assert(i < 3);
+  if (i == 0) return v0;
+  if (i == 1) return v1;
+  return v2;
 }
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution.html
@@ -98,14 +157,12 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   Interval<double> ti(0.001, 1e9);
   switch (type) {
     case SPHERE: {
-      if (ray_vs_sphere(ray, sphere, ti, t)) {
+      if (sphere.intersect(ray, ti, t)) {
         Intersection surface;
-        surface.hit = true;
-        surface.material = material;
         surface.t = t;
         surface.point = ray.point_at(t);
         glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
-        if (dot(ray.direction, normal) > 0.0) {
+        if (glm::dot(ray.direction, normal) > 0.0) {
           // ray is inside the sphere
           surface.normal = -normal;
           surface.inside = false;
@@ -114,20 +171,26 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
           surface.normal = normal;
           surface.inside = true;
         }
+        surface.material = material;
+        if (surface.material->texture) {
+          surface.uv = sphere.texcoord(surface.point);
+        }
         return surface;
       } else {
         return std::nullopt;
       }
     }
     case TRIANGLE: {
-      if (ray_vs_triangle(ray, triangle, ti, t)) {
+      if (triangle.intersect(ray, ti, t)) {
         Intersection surface;
-        surface.hit = true;
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal();
-        surface.material = material;
         surface.inside = false;
+        surface.material = material;
+        if (surface.material->texture) {
+          surface.uv = triangle.texcoord(surface.point);
+        }
         return surface;
       } else {
         return std::nullopt;
@@ -138,12 +201,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   }
 }
 
-std::optional<Intersection> intersect_primitives(const Ray&, const std::vector<Primitive>& primitives)
-{
-  return std::nullopt;
-}
-
-std::optional<Intersection> closest(const std::optional<Intersection> a, const std::optional<Intersection> b)
+std::optional<Intersection> closest(const std::optional<Intersection>& a, const std::optional<Intersection>& b)
 {
   if (a.has_value() && b.has_value()) {
     return (a.value().t < b.value().t) ? a : b;

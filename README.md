@@ -19,3 +19,5 @@ valgrind --leak-check=full --log-file=valgrind_report.txt ./pt 2
 ![](./doc/results/bunny_10000s_3b.png)
 
 ![](./doc/results/cornell_box_10000s_3b_1730735703.png)
+
+![Textures, mirror and gamma correction](./doc/results/render_5000s_3b_1731051114.png)
