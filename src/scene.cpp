@@ -92,13 +92,13 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   if (!reader.ParseFromFile(filename.string(), reader_config)) {
     if (!reader.Error().empty()) {
-      std::cerr << "TinyObjReader: " << reader.Error();
+      std::cerr << __FUNCTION__ << " " << reader.Error();
     }
     exit(1);
   }
 
   if (!reader.Warning().empty()) {
-    std::cout << "TinyObjReader: " << reader.Warning();
+    std::cout << __FUNCTION__ << " " << reader.Warning();
   }
 
   auto& attrib = reader.GetAttrib();
@@ -107,10 +107,9 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   Material* default_material = add_material(Material(glm::dvec3(1, 1, 0)));
 
-  // Print out vertices, shapes, and materials info
-  std::cout << "# of vertices: " << (attrib.vertices.size() / 3) << std::endl;
-  std::cout << "# of shapes: " << shapes.size() << std::endl;
-  std::cout << "# of materials: " << mtls.size() << std::endl;
+  std::cout << __FUNCTION__ << " Vertices: " << (attrib.vertices.size() / 3) << std::endl;
+  std::cout << __FUNCTION__ << " Shapes: " << shapes.size() << std::endl;
+  std::cout << __FUNCTION__ << " Materials: " << mtls.size() << std::endl;
 
   auto offset = material_count;
 
@@ -124,11 +123,11 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
 
       Image* texture = new Image();
-      if (!texture->load(diffuse_texname)) {
-        std::cerr << "Failed to load " << diffuse_texname << std::endl;
+      if (texture->load(diffuse_texname)) {
+        std::cout << __FUNCTION__ << " Loaded texture " << diffuse_texname << " (" << texture->width() << ", "
+                  << texture->height() << ", " << texture->channels() << ")" << std::endl;
       } else {
-        std::cout << "Loaded texture " << diffuse_texname << std::endl;
-        std::cout << texture->width() << ", " << texture->height() << ", " << texture->channels() << std::endl;
+        std::cerr << __FUNCTION__ << " Failed to load " << diffuse_texname << std::endl;
       }
       material.texture = texture;
     }
@@ -178,15 +177,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   std::vector<Primitive> triangles;
 
-#if 0
-  std::cout << "Vertices: " << vertices.size() << std::endl;
-  for (auto& vert : vertices) {
-    std::cout << vert.pos << std::endl;
-  }
-#endif
-
   size_t triangle_count = vertices.size() / 3;
-
   for (size_t i = 0; i < triangle_count; i++) {
     Triangle tri;
     tri.v0 = vertices[i * 3 + 0].pos;
@@ -204,14 +195,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       triangles.push_back(Primitive(tri, m));
     }
   }
-
-#if 0
-  std::cout << "Triangles: " << triangles.size() << std::endl;
-  for (const Primitive& p : triangles) {
-    std::cout << "Triangle(" << p.triangle.v0 << ", " << p.triangle.v1 << ", " << p.triangle.v2
-              << "), normal=" << p.triangle.normal() << ", albedo=" << p.material->albedo << std::endl;
-  }
-#endif
 
   return triangles;
 }

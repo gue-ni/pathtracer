@@ -81,6 +81,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   auto scene = std::make_unique<Scene>();
 
   for (const std::string path : config.models) {
+    std::cout << "Load Mesh: " << path << std::endl;
     auto mesh = scene->load_obj(path);
 
     AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
@@ -97,7 +98,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     material->emittance = s.emissive;
 
     if (!s.texture.empty()) {
-      material->texture = new Image();
+      material->texture = new Image(); // TODO: this is never deallocated
       material->texture->load(s.texture);
     }
     Primitive p(Sphere(s.center, s.radius), material);
