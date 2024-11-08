@@ -1,7 +1,7 @@
 {
-	"print_progress": false,
+	"print_progress": true,
 	"max_bounce": 3,
-	"samples_per_pixel": 8,
+	"samples_per_pixel": 256,
 	"image_width": 640,
 	"image_height": 360,
 	"camera_position": {
@@ -53,6 +53,46 @@
 				"x": 0,
 				"y": 0,
 				"z": 0
+			},
+			"texture": ""
+		},
+		{
+			"center": {
+				"x": -30,
+				"y": 15,
+				"z": 50
+			},
+			"radius": 15,
+			"type": "TRANSMISSIVE",
+			"albedo": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"emissive": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"texture": ""
+		},
+		{
+			"center": {
+				"x": 30,
+				"y": 15,
+				"z": 50
+			},
+			"radius": 15,
+			"type": "DIFFUSE",
+			"albedo": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"emissive": {
+				"x": 2,
+				"y": 0,
+				"z": 2
 			},
 			"texture": ""
 		}
