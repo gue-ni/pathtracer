@@ -16,6 +16,13 @@
 
 using json = nlohmann::json;
 
+struct SimpleSphere : public Sphere {
+  Material::Type type;
+  glm::dvec3 albedo;
+  glm::dvec3 emissive;
+  std::string texture;
+};
+
 struct Config {
   bool print_progress;
   int max_bounce;
@@ -28,6 +35,7 @@ struct Config {
   double camera_fov;
 
   std::vector<std::string> models;
+  std::vector<SimpleSphere> spheres;
 };
 
 namespace glm
@@ -35,6 +43,22 @@ namespace glm
 static void from_json(const json& j, dvec3& v) { v = dvec3{j["x"], j["y"], j["z"]}; }
 
 }  // namespace glm
+
+static void from_json(const json& j, SimpleSphere& s)
+{
+  s.center = j["center"];
+  s.radius = j["radius"];
+  s.albedo = j["albedo"];
+  s.emissive = j["emissive"];
+  s.texture = j["texture"];
+  if (j["type"] == "SPECULAR") {
+    s.type = Material::SPECULAR;
+  } else if (j["type"] == "TRANSMISSIVE") {
+    s.type = Material::TRANSMISSIVE;
+  } else {
+    s.type = Material::DIFFUSE;
+  }
+}
 
 static void from_json(const json& j, Config& c)
 {
@@ -49,6 +73,7 @@ static void from_json(const json& j, Config& c)
   c.camera_fov = j["camera_fov"];
 
   c.models = j["models"].get<std::vector<std::string>>();
+  c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
@@ -108,23 +133,10 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   return std::make_tuple(std::move(scene), std::move(camera));
 }
 
-std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config,
-                                                                        const std::filesystem::path& model_path)
+std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config)
 {
   auto scene = std::make_unique<Scene>();
 
-#if 0
-  if (!model_path.empty()) {
-    auto mesh = scene->load_obj(model_path);
-
-    AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
-    std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
-
-    scene->set_center(bbox.center());
-    scene->set_focus_size(bbox.size());
-    scene->add_primitives(mesh.begin(), mesh.end());
-  }
-#else
   for (const std::string path : config.models) {
     auto mesh = scene->load_obj(path);
 
@@ -133,7 +145,21 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
     scene->add_primitives(mesh.begin(), mesh.end());
   }
-#endif
+
+  for (const auto& s : config.spheres) {
+    Material* material = scene->add_material(Material());
+
+    material->type = s.type;
+    material->albedo = s.albedo;
+    material->emittance = s.emissive;
+
+    if (!s.texture.empty()) {
+      material->texture = new Image();
+      material->texture->load(s.texture);
+    }
+    Primitive p(Sphere(s.center, s.radius), material);
+    scene->add_primitive(p);
+  }
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov);
   camera->look_at(config.camera_position, config.camera_target);
@@ -145,15 +171,11 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
 int main(int argc, char** argv)
 {
-  std::filesystem::path model_path;
   std::filesystem::path config_path;
   std::filesystem::path result_path;
 
   if (2 <= argc) {
     config_path = std::filesystem::path(argv[1]);
-  }
-  if (3 <= argc) {
-    model_path = std::filesystem::path(argv[2]);
   }
 
   std::ifstream file(config_path);
@@ -176,7 +198,7 @@ int main(int argc, char** argv)
 #if 0
   auto [scene, camera] = test_scene_1();
 #else
-  auto [scene, camera] = setup_scene(config, model_path);
+  auto [scene, camera] = setup_scene(config);
 #endif
 
   if (!scene) {
