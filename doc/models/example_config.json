@@ -1,0 +1,27 @@
+{
+	"print_progress": true,
+	"max_bounce": 3,
+	"samples_per_pixel": 64,
+	"image_width": 640,
+	"image_height": 360,
+	"camera_position": {
+		"x": 0,
+		"y": 50,
+		"z": 230
+	},
+	"camera_target": {
+		"x": 0,
+		"y": 50,
+		"z": 0
+	},
+	"camera_fov": 20.0,
+	"primitives": [
+		{
+			"type": "SPHERE",
+			"sphere": {
+				"center": {},
+				"radius": 5
+			}
+		}
+	]
+}
