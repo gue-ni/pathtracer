@@ -10,6 +10,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
+#define BACKGROUND_SKY   0
+#define BACKGROUND_WHITE 1
+#define BACKGROUND_BLACK 2
+#define BACKGROUND       BACKGROUND_SKY
+
 Scene::Scene() : bvh(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
@@ -39,12 +44,16 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
-#if 0
+#if (BACKGROUND == BACKGROUND_SKY)
   // sky
   double a = 0.5 * (r.direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
-#else
+#elif (BACKGROUND == BACKGROUND_WHITE)
   return glm::dvec3(1);
+#elif (BACKGROND == BACKGROUND_BLACK)
+  return glm::dvec3(0);
+#else
+  return glm::dvec3(1, 0, 1);
 #endif
 }
 
@@ -119,8 +128,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
         std::cout << "Loaded texture " << diffuse_texname << std::endl;
         std::cout << texture->width() << ", " << texture->height() << ", " << texture->channels() << std::endl;
       }
-
-      // material.albedo = glm::dvec3(0,1,1);
       material.texture = texture;
     }
 
@@ -156,7 +163,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
           tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
           tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
           vertex.uv = {tx, ty};
-          std::cout << vertex.uv << std::endl;
         } else {
           vertex.uv = {0, 0};
         }

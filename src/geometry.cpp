@@ -58,7 +58,8 @@ bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) co
   return ray_vs_triangle(r, *this, ti, t);
 }
 
-static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double &u, double &v, double &w)
+static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double& u,
+                        double& v, double& w)
 {
   auto v0 = b - a, v1 = c - a, v2 = p - a;
   double d00 = glm::dot(v0, v0);
@@ -171,7 +172,9 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
           surface.inside = true;
         }
         surface.material = material;
-        surface.uv = sphere.texcoord(surface.point);
+        if (surface.material->texture) {
+          surface.uv = sphere.texcoord(surface.point);
+        }
         return surface;
       } else {
         return std::nullopt;
