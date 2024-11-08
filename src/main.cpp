@@ -26,6 +26,8 @@ struct Config {
   glm::dvec3 camera_position;
   glm::dvec3 camera_target;
   double camera_fov;
+
+  std::vector<std::string> models;
 };
 
 namespace glm
@@ -45,6 +47,8 @@ static void from_json(const json& j, Config& c)
   c.camera_position = j["camera_position"];
   c.camera_target = j["camera_target"];
   c.camera_fov = j["camera_fov"];
+
+  c.models = j["models"].get<std::vector<std::string>>();
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
@@ -77,8 +81,6 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> test_scene_1()
   AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
   std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
 
-  scene->set_center(bbox.center());
-  scene->set_focus_size(bbox.size());
   scene->add_primitives(mesh.begin(), mesh.end());
 #endif
 #if 0
@@ -111,6 +113,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 {
   auto scene = std::make_unique<Scene>();
 
+#if 0
   if (!model_path.empty()) {
     auto mesh = scene->load_obj(model_path);
 
@@ -121,6 +124,16 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     scene->set_focus_size(bbox.size());
     scene->add_primitives(mesh.begin(), mesh.end());
   }
+#else
+  for (const std::string path : config.models) {
+    auto mesh = scene->load_obj(path);
+
+    AABB bbox = compute_bounding_volume(mesh.begin(), mesh.end());
+    std::cout << "Mesh Size: " << bbox.size() << ", Mesh Center: " << bbox.center() << std::endl;
+
+    scene->add_primitives(mesh.begin(), mesh.end());
+  }
+#endif
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov);
   camera->look_at(config.camera_position, config.camera_target);
@@ -180,7 +193,7 @@ int main(int argc, char** argv)
   std::cout << "Max Bounce Depth: " << config.max_bounce << std::endl;
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;
-  std::cout << "Scene Size: " << scene->focus_size() << std::endl;
+  std::cout << "Scene Size: " << scene->size() << std::endl;
   std::cout << "Scene Center: " << scene->center() << std::endl;
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
 

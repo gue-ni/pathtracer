@@ -15,7 +15,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : bvh(nullptr) {}
+Scene::Scene() : m_bvh(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -37,8 +37,8 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
   return closest.hit ? std::optional<Intersection>(closest) : std::nullopt;
 #else
-  assert(bvh != nullptr);
-  return bvh->traverse(ray);
+  assert(m_bvh != nullptr);
+  return m_bvh->traverse(ray);
 #endif
 }
 
@@ -71,9 +71,11 @@ void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const s
   }
 }
 
-void Scene::compute_bvh() { bvh = std::make_unique<BVH>(primitives); }
+void Scene::compute_bvh() { m_bvh = std::make_unique<BVH>(primitives); }
 
-glm::dvec3 Scene::center() const { return m_center; }
+glm::dvec3 Scene::center() const { return m_bvh->root()->bbox.center(); }
+
+glm::dvec3 Scene::size() const { return m_bvh->root()->bbox.size(); }
 
 struct Vertex {
   glm::dvec3 pos{};

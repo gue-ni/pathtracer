@@ -1,7 +1,7 @@
 {
 	"print_progress": true,
 	"max_bounce": 3,
-	"samples_per_pixel": 64,
+	"samples_per_pixel": 16,
 	"image_width": 640,
 	"image_height": 360,
 	"camera_position": {
@@ -19,9 +19,14 @@
 		{
 			"type": "SPHERE",
 			"sphere": {
-				"center": {},
-				"radius": 5
+				"center": {
+					"x": 70,
+					"y": 20,
+					"z": 0
+				},
+				"radius": 20
 			}
 		}
-	]
+	],
+	"models": ["../doc/models/cornell_box.obj"]
 }
