@@ -1,14 +1,17 @@
 #include "camera.h"
 #include "util.h"
+#include <cmath>
 #include <glm/glm.hpp>
 
-Camera::Camera(int width, int height, double fov)
+Camera::Camera(int width, int height, double fov, double aperture, double focus_distance)
     : m_width(width),
       m_height(height),
       m_world_up(0.0, 1.0, 0.0),
       m_forward(0.0, 0.0, -1.0),
       m_position(0.0, 0.0, 0.0),
-      m_fov(glm::radians(fov))
+      m_fov(glm::radians(fov)),
+      m_aperture(aperture),
+      m_focus_distance(focus_distance)
 {
   compute();
 }
@@ -32,9 +35,26 @@ Ray Camera::get_ray(int x, int y) const
   glm::dvec3 target = m_position + m_forward;
   glm::dvec3 view_point = target + (width * m_right * uv.x) - (height * m_up * uv.y);
 
+  glm::dvec3 dir = glm::normalize(view_point - m_position);
+
+  double focus_dist = m_focus_distance;
+  glm::dvec3 focus_point = m_position + (dir * focus_dist);
+
+  auto r = random_in_unit_disk();
+  double defocus_angle = m_aperture;
+  auto defocus_radius = focus_dist * std::tan(glm::radians(defocus_angle / 2.0));
+  auto defocus_disk_u = m_up * defocus_radius;
+  auto defocus_disk_v = m_right * defocus_radius;
+
+#if 1
+  glm::dvec3 origin = m_position + (r.x * defocus_disk_v) + (r.y * defocus_disk_u);
+#else
+  glm::dvec3 origin = m_position;
+#endif
+
   Ray ray;
-  ray.origin = m_position;
-  ray.direction = glm::normalize(view_point - m_position);
+  ray.origin = origin;
+  ray.direction = glm::normalize(focus_point - origin);
   return ray;
 }
 

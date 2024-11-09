@@ -72,6 +72,16 @@ inline glm::dvec3 random_unit_vector()
   return vector_from_spherical(theta, phi);
 }
 
+inline glm::dvec3 random_in_unit_disk()
+{
+  while (true) {
+    double x0 = map_range(random_double(), 0.0, 1.0, -1.0, 1.0);
+    double x1 = map_range(random_double(), 0.0, 1.0, -1.0, 1.0);
+    auto p = glm::dvec3(x0, x1, 0);
+    if (glm::dot(p, p) < 1) return p;
+  }
+}
+
 inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
 {
   glm::dvec3 unit_vector = random_unit_vector();
