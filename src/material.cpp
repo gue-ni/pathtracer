@@ -51,7 +51,10 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   // TODO: this is probably not linear
   double shininess = surface->material->shininess;
   double max_shininess = 1000;
-  double fuzz = 1 - (shininess / max_shininess);
+  if (shininess < max_shininess) {
+    double fuzz = 1 - (shininess / max_shininess);
+    ray.direction += (fuzz * random_unit_vector());
+  }
 
   glm::dvec3 albedo = surface->material->albedo;
   if (surface->material->texture) {
@@ -59,7 +62,6 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
     albedo = reverse_gamma_correction(surface->material->texture->sample(surface->uv));
   }
 
-  ray.direction += (fuzz * random_unit_vector());
   return BRDF::Sample{ray, albedo};
 }
 
