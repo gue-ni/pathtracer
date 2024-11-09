@@ -36,6 +36,8 @@ struct Config {
 
   std::vector<std::string> models;
   std::vector<SimpleSphere> spheres;
+
+  std::string environment_texture;
 };
 
 namespace glm
@@ -74,6 +76,8 @@ static void from_json(const json& j, Config& c)
 
   c.models = j["models"].get<std::vector<std::string>>();
   c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
+
+  c.environment_texture = j["environment_texture"];
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config)
@@ -100,6 +104,15 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     }
     Primitive p(Sphere(s.center, s.radius), material);
     scene->add_primitive(p);
+  }
+
+  if (!config.environment_texture.empty()) {
+    Image* image = new Image();
+    image->load(config.environment_texture);
+    scene->set_envmap(image);
+  } else {
+    std::cerr << "No texture\n";
+    exit(1);
   }
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov);
