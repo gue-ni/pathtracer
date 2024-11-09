@@ -79,8 +79,7 @@ static void from_json(const json& j, Config& c)
   c.models = j["models"].get<std::vector<std::string>>();
   c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
 
-  std::string key = "environment_texture";
-  if (j.contains(key)) c.environment_texture = j[key];
+  if (j.contains("environment_texture")) c.environment_texture = j["environment_texture"];
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config)

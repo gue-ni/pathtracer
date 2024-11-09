@@ -123,7 +123,29 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   for (const tinyobj::material_t& m : mtls) {
     Material material;
-    material.type = Material::SPECULAR;
+
+    switch (m.illum) {
+      case 0:
+      case 1:
+      case 2:
+        material.type = Material::DIFFUSE;
+        break;
+      case 3:
+      case 5:
+      case 8:
+        material.type = Material::SPECULAR;
+        break;
+      case 4:
+      case 6:
+      case 7:
+      case 9:
+        material.type = Material::TRANSMISSIVE;
+        break;
+      default:
+        material.type = Material::DIFFUSE;
+        break;
+    }
+
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
     material.shininess = m.shininess;
