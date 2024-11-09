@@ -5,6 +5,7 @@
 #include "geometry.h"
 #include <glm/glm.hpp>
 #include "image.h"
+#include "material.h"
 #include "tiny_obj_loader.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -15,7 +16,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : bvh(nullptr) {}
+Scene::Scene() : m_bvh(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -37,8 +38,8 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
   return closest.hit ? std::optional<Intersection>(closest) : std::nullopt;
 #else
-  assert(bvh != nullptr);
-  return bvh->traverse(ray);
+  assert(m_bvh != nullptr);
+  return m_bvh->traverse(ray);
 #endif
 }
 
@@ -71,9 +72,11 @@ void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const s
   }
 }
 
-void Scene::compute_bvh() { bvh = std::make_unique<BVH>(primitives); }
+void Scene::compute_bvh() { m_bvh = std::make_unique<BVH>(primitives); }
 
-glm::dvec3 Scene::center() const { return m_center; }
+glm::dvec3 Scene::center() const { return m_bvh->root()->bbox.center(); }
+
+glm::dvec3 Scene::size() const { return m_bvh->root()->bbox.size(); }
 
 struct Vertex {
   glm::dvec3 pos{};
@@ -83,73 +86,68 @@ struct Vertex {
 
 std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 {
+  std::cout << __FUNCTION__ << " Filename: " << filename.string() << std::endl;
   tinyobj::ObjReaderConfig reader_config;
+
   reader_config.mtl_search_path = filename.parent_path().string();  // Path to look for .mtl files
+  std::cout << __FUNCTION__ << " mtl search path: " << reader_config.mtl_search_path << std::endl;
 
   tinyobj::ObjReader reader;
 
   if (!reader.ParseFromFile(filename.string(), reader_config)) {
     if (!reader.Error().empty()) {
-      std::cerr << "TinyObjReader: " << reader.Error();
+      std::cerr << __FUNCTION__ << " " << reader.Error();
     }
     exit(1);
   }
 
   if (!reader.Warning().empty()) {
-    std::cout << "TinyObjReader: " << reader.Warning();
+    std::cout << __FUNCTION__ << " " << reader.Warning();
   }
 
   auto& attrib = reader.GetAttrib();
   auto& shapes = reader.GetShapes();
   const std::vector<tinyobj::material_t>& mtls = reader.GetMaterials();
 
-  Material* default_material = add_material(Material(glm::dvec3(1, 1, 0)));
-
-  // Print out vertices, shapes, and materials info
-  std::cout << "# of vertices: " << (attrib.vertices.size() / 3) << std::endl;
-  std::cout << "# of shapes: " << shapes.size() << std::endl;
-  std::cout << "# of materials: " << mtls.size() << std::endl;
+  std::cout << __FUNCTION__ << " Vertices: " << (attrib.vertices.size() / 3) << std::endl;
+  std::cout << __FUNCTION__ << " Shapes: " << shapes.size() << std::endl;
+  std::cout << __FUNCTION__ << " Materials: " << mtls.size() << std::endl;
 
   auto offset = material_count;
 
-#if 1
   for (const tinyobj::material_t& m : mtls) {
     Material material;
+    material.type = Material::SPECULAR;
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
+    material.shininess = m.shininess;
 
     if (!m.diffuse_texname.empty()) {
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
 
-      Image* texture = new Image();
-      if (!texture->load(diffuse_texname)) {
-        std::cerr << "Failed to load " << diffuse_texname << std::endl;
+      Image* texture = new Image();  // TODO: this is never deallocated
+      if (texture->load(diffuse_texname)) {
+        std::cout << __FUNCTION__ << " Loaded texture " << diffuse_texname << " (" << texture->width() << ", "
+                  << texture->height() << ", " << texture->channels() << ")" << std::endl;
       } else {
-        std::cout << "Loaded texture " << diffuse_texname << std::endl;
-        std::cout << texture->width() << ", " << texture->height() << ", " << texture->channels() << std::endl;
+        std::cerr << __FUNCTION__ << " Failed to load " << diffuse_texname << std::endl;
       }
       material.texture = texture;
     }
 
     (void)add_material(material);
   }
-#endif
 
   std::vector<Vertex> vertices;
 
-  // Loop over shapes
   for (size_t s = 0; s < shapes.size(); s++) {
-    // Loop over faces(polygon)
     size_t index_offset = 0;
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
       size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
-      // per-face material
       int material_id = shapes[s].mesh.material_ids[f];
 
-      // Loop over vertices in the face.
       for (size_t v = 0; v < fv; v++) {
-        // access to vertex
         tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
         Vertex vertex;
@@ -176,15 +174,9 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   std::vector<Primitive> triangles;
 
-#if 0
-  std::cout << "Vertices: " << vertices.size() << std::endl;
-  for (auto& vert : vertices) {
-    std::cout << vert.pos << std::endl;
-  }
-#endif
+  Material* default_material = add_material(Material(glm::dvec3(0.5)));
 
   size_t triangle_count = vertices.size() / 3;
-
   for (size_t i = 0; i < triangle_count; i++) {
     Triangle tri;
     tri.v0 = vertices[i * 3 + 0].pos;
@@ -194,6 +186,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     tri.t1 = vertices[i * 3 + 1].uv;
     tri.t2 = vertices[i * 3 + 2].uv;
 
+#if 1
     if (mtls.empty()) {
       triangles.push_back(Primitive(tri, default_material));
     } else {
@@ -201,15 +194,11 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       Material* m = &this->materials[id];
       triangles.push_back(Primitive(tri, m));
     }
-  }
-
-#if 0
-  std::cout << "Triangles: " << triangles.size() << std::endl;
-  for (const Primitive& p : triangles) {
-    std::cout << "Triangle(" << p.triangle.v0 << ", " << p.triangle.v1 << ", " << p.triangle.v2
-              << "), normal=" << p.triangle.normal() << ", albedo=" << p.material->albedo << std::endl;
-  }
+#else
+    triangles.push_back(Primitive(tri, default_material));
 #endif
+  }
 
+  std::cout << __FUNCTION__ << " Triangles: " << triangles.size() << std::endl;
   return triangles;
 }

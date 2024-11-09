@@ -47,7 +47,20 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
   glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
   Ray ray = Ray(surface->point, reflected);
-  return BRDF::Sample{ray, surface->material->albedo};
+
+  // TODO: this is probably not linear
+  double shininess = surface->material->shininess;
+  double max_shininess = 1000;
+  double fuzz = 1 - (shininess / max_shininess);
+
+  glm::dvec3 albedo = surface->material->albedo;
+  if (surface->material->texture) {
+    // image textures are generally sRGB, so we need to convert them to linear space
+    albedo = reverse_gamma_correction(surface->material->texture->sample(surface->uv));
+  }
+
+  ray.direction += (fuzz * random_unit_vector());
+  return BRDF::Sample{ray, albedo};
 }
 
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)

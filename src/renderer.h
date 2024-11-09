@@ -17,7 +17,7 @@ class Renderer
  public:
   Renderer(Camera *camera, Scene *scene);
   ~Renderer();
-  void render(int samples, int max_bounce);
+  void render(int samples, int max_bounce, bool print_progress = false);
   glm::dvec3 trace_ray(const Ray &ray, int depth);
   void save_image(const char* path);
 

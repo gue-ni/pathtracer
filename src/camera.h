@@ -6,7 +6,7 @@
 class Camera
 {
  public:
-  Camera(int width, int height);
+  Camera(int width, int height, double fov = 20.0);
   Ray get_ray(int x, int y) const;
   int width() const;
   int height() const;

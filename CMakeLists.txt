@@ -18,6 +18,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 FIND_PACKAGE( OpenMP REQUIRED)
 if(OPENMP_FOUND)
   message("OPENMP FOUND")
@@ -41,3 +44,7 @@ add_executable(pt
 )
 
 target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}")
+
+target_link_libraries(pt PUBLIC nlohmann_json::nlohmann_json)
+
+target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}" "${json_SOURCE_DIR}" ".")

@@ -4,7 +4,6 @@
 #include "util.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define PRINT_PROGRESS  1
 #define DEBUG_NORMAL    0
 #define COSINE_WEIGHTED 1
 
@@ -27,15 +26,15 @@ Renderer::~Renderer()
   if (m_buffer != nullptr) delete[] m_buffer;
 }
 
-void Renderer::render(int samples, int max_bounce)
+void Renderer::render(int samples, int max_bounce, bool print_progress)
 {
   double sample_weight = 1.0 / double(samples);
 
 #pragma omp parallel for schedule(dynamic, 1)
   for (int y = 0; y < m_camera->height(); y++) {
-#if PRINT_PROGRESS
-    printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
-#endif
+    if (print_progress) {
+      printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
+    }
 
     for (int x = 0; x < m_camera->width(); x++) {
       glm::dvec3 color(0.0);
@@ -88,4 +87,6 @@ void Renderer::save_image(const char* path)
   }
 
   output.write(std::filesystem::path(path));
+
+  std::cout << "Save image to " << path << std::endl;
 }

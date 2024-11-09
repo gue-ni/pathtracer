@@ -154,7 +154,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
   intersection_test_counter++;
 #endif
   double t;
-  Interval<double> ti(0.001, 1e9);
+  Interval<double> ti(0.00001, 1e9);
   switch (type) {
     case SPHERE: {
       if (sphere.intersect(ray, ti, t)) {
