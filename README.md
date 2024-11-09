@@ -16,7 +16,7 @@ valgrind --leak-check=full --log-file=valgrind_report.txt ./pt 2
 
 ## Results
 
-![](./doc/results/render_5000s_3b_1731087163.png)
+![](./doc/results/render_5000s_3b_1731181914.png)
 
 ![](./doc/results/render_5000s_3b_1731060148.png)
 
