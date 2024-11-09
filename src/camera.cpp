@@ -40,7 +40,7 @@ Ray Camera::get_ray(int x, int y) const
   double focus_dist = m_focus_distance;
   glm::dvec3 focus_point = m_position + (dir * focus_dist);
 
-  glm::dvec2 r = random_unit_plane();
+  auto r = random_in_unit_disk();
   double defocus_angle = m_aperture;
   auto defocus_radius = focus_dist * std::tan(glm::radians(defocus_angle / 2.0));
   auto defocus_disk_u = m_up * defocus_radius;
