@@ -6,7 +6,7 @@
 class Camera
 {
  public:
-  Camera(int width, int height, double fov = 20.0);
+  Camera(int width, int height, double fov, double aperture, double focus_distance);
   Ray get_ray(int x, int y) const;
   int width() const;
   int height() const;
@@ -21,6 +21,9 @@ class Camera
   const glm::dvec3 m_world_up;
   glm::dvec3 m_position, m_forward, m_right, m_up;
   double m_fov;
+  double m_focus_distance;
+  double m_aperture ;
+
 
   void compute();
 };

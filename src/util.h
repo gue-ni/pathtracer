@@ -72,6 +72,13 @@ inline glm::dvec3 random_unit_vector()
   return vector_from_spherical(theta, phi);
 }
 
+inline glm::dvec2 random_unit_plane()
+{
+  double theta = random_double() * 2.0f * pi;
+  double phi = std::acos(1.0f - 2.0f * random_double());
+  return glm::dvec2(std::sin(theta), std::sin(phi));
+}
+
 inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
 {
   glm::dvec3 unit_vector = random_unit_vector();

@@ -33,6 +33,8 @@ struct Config {
   glm::dvec3 camera_position;
   glm::dvec3 camera_target;
   double camera_fov;
+  double camera_aperture;
+  double camera_focus_distance;
 
   std::vector<std::string> models;
   std::vector<SimpleSphere> spheres;
@@ -65,19 +67,20 @@ static void from_json(const json& j, SimpleSphere& s)
 static void from_json(const json& j, Config& c)
 {
   c.print_progress = j["print_progress"];
-  // c.max_bounce = j["max_bounce"];
-  // c.samples_per_pixel = j["samples_per_pixel"];
   c.image_width = j["image_width"];
   c.image_height = j["image_height"];
 
   c.camera_position = j["camera_position"];
   c.camera_target = j["camera_target"];
   c.camera_fov = j["camera_fov"];
+  c.camera_aperture = j["camera_aperture"];
+  c.camera_focus_distance = j["camera_focus_distance"];
 
   c.models = j["models"].get<std::vector<std::string>>();
   c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
 
-  c.environment_texture = j["environment_texture"];
+  std::string key = "environment_texture";
+  if (j.contains(key)) c.environment_texture = j[key];
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config)
@@ -117,8 +120,12 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     }
   }
 
-  std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov);
+  std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov,
+                                                            config.camera_aperture, config.camera_focus_distance);
   camera->look_at(config.camera_position, config.camera_target);
+
+  std::cout << "Distance camera position to camera target: "
+            << glm::distance(config.camera_position, config.camera_target) << std::endl;
 
   scene->compute_bvh();
 
