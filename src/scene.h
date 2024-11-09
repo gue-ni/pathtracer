@@ -25,10 +25,12 @@ class Scene
   size_t primitive_count() const { return primitives.size(); }
   glm::dvec3 center() const;
   glm::dvec3 size() const;
+  void set_envmap(Image* envmap) { m_environment_map = envmap; }
 
  private:
   std::vector<Primitive> primitives;
   std::unique_ptr<BVH> m_bvh;
   size_t material_count = 0;
   std::array<Material, 256> materials;
+  Image* m_environment_map;
 };

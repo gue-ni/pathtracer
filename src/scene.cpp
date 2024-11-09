@@ -7,6 +7,7 @@
 #include "image.h"
 #include "material.h"
 #include "tiny_obj_loader.h"
+#include "util.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
@@ -16,7 +17,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : m_bvh(nullptr) {}
+Scene::Scene() : m_bvh(nullptr), m_environment_map(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -45,17 +46,22 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 glm::dvec3 Scene::background(const Ray& r)
 {
+  if (m_environment_map) {
+    auto color = m_environment_map->sample_equirectangular(r.direction);
+    return reverse_gamma_correction(color);
+  } else {
 #if (BACKGROUND == BACKGROUND_SKY)
-  // sky
-  double a = 0.5 * (r.direction.y + 1.0);
-  return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
+    // sky
+    double a = 0.5 * (r.direction.y + 1.0);
+    return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 #elif (BACKGROUND == BACKGROUND_WHITE)
-  return glm::dvec3(1);
+    return glm::dvec3(1);
 #elif (BACKGROND == BACKGROUND_BLACK)
-  return glm::dvec3(0);
+    return glm::dvec3(0);
 #else
-  return glm::dvec3(1, 0, 1);
+    return glm::dvec3(1, 0, 1);
 #endif
+  }
 }
 
 Material* Scene::add_material(const Material& m)
@@ -117,7 +123,29 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   for (const tinyobj::material_t& m : mtls) {
     Material material;
-    material.type = Material::SPECULAR;
+
+    switch (m.illum) {
+      case 0:
+      case 1:
+      case 2:
+        material.type = Material::DIFFUSE;
+        break;
+      case 3:
+      case 5:
+      case 8:
+        material.type = Material::SPECULAR;
+        break;
+      case 4:
+      case 6:
+      case 7:
+      case 9:
+        material.type = Material::TRANSMISSIVE;
+        break;
+      default:
+        material.type = Material::DIFFUSE;
+        break;
+    }
+
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
     material.shininess = m.shininess;

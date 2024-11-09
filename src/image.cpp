@@ -26,6 +26,7 @@ bool Image::load(const std::filesystem::path& path)
 {
   free_data();
   auto tmp = path.string();
+  stbi_set_flip_vertically_on_load(true);
   return (m_data = stbi_load(tmp.c_str(), &m_width, &m_height, &m_channels, 3)) != nullptr;
 }
 
@@ -58,11 +59,53 @@ void Image::set_pixel(int x, int y, unsigned char* pixel)
 
 glm::dvec3 Image::sample(const glm::dvec2& uv) const { return sample(uv.x, uv.y); }
 
-glm::dvec3 Image::sample(double u, double v) const
+glm::dvec3 Image::sample(double u, double v, bool interpolate) const
 {
-  // TODO: proper bilinear interpolation
-  auto p = pixel(u * (m_width - 1), v * (m_height - 1));
-  return rgb(p.r, p.g, p.b);
+  if (interpolate) {
+    double x = u * (m_width - 1);
+    double y = v * (m_height - 1);
+
+    int x0 = int(x);
+    int y0 = int(y);
+    double x_frac = x - x0;
+    double y_frac = y - y0;
+
+    auto tl = pixel(x0 + 0, y0 + 0);
+    auto tr = pixel(x0 + 1, y0 + 0);
+    auto bl = pixel(x0 + 0, y0 + 1);
+    auto br = pixel(x0 + 1, y0 + 1);
+
+    auto p = glm::mix(glm::mix(tl, tr, x_frac), glm::mix(bl, br, x_frac), y_frac);
+    return rgb(p);
+
+  } else {
+    auto p = pixel(u * (m_width - 1), v * (m_height - 1));
+    return rgb(p);
+  }
+}
+
+glm::dvec3 Image::sample_equirectangular(const glm::dvec3& v) const
+{
+#if 0
+  // Calculate longitude and latitude
+  double longitude = std::atan2(direction.x, direction.z);
+  double latitude = std::asin(direction.y);
+
+  // Map to UV coordinates
+  constexpr double pi = 3.141596;
+  double u = (longitude / (2 * pi)) + 0.5;
+  double v = 0.5 - (latitude / pi);
+
+  return sample(u, v);
+#else
+
+  glm::dvec2 invAtan = glm::dvec2(0.1591, 0.3183);
+  glm::dvec2 uv = glm::dvec2(std::atan2(v.z, v.x), std::asin(v.y));
+  uv *= invAtan;
+  uv += 0.5;
+  return sample(uv);
+
+#endif
 }
 
 void Image::free_data()

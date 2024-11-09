@@ -1,7 +1,5 @@
 {
 	"print_progress": true,
-	"max_bounce": 3,
-	"samples_per_pixel": 256,
 	"image_width": 640,
 	"image_height": 360,
 	"camera_position": {

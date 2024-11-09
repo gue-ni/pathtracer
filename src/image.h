@@ -12,8 +12,9 @@ class Image
   ~Image();
   bool load(const std::filesystem::path& path);
   bool write(const std::filesystem::path& path) const;
-  glm::dvec3 sample(double u, double v) const;
+  glm::dvec3 sample(double u, double v, bool interpolate = true) const;
   glm::dvec3 sample(const glm::dvec2& uv) const;
+  glm::dvec3 sample_equirectangular(const glm::dvec3&) const;
   int width() const { return m_width; }
   int height() const { return m_height; }
   int channels() const { return m_channels; }
