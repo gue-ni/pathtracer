@@ -108,11 +108,13 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
   if (!config.environment_texture.empty()) {
     Image* image = new Image();
-    image->load(config.environment_texture);
-    scene->set_envmap(image);
-  } else {
-    std::cerr << "No texture\n";
-    exit(1);
+    if (image->load(config.environment_texture)) {
+      std::cout << "Loaded environment texture " << config.environment_texture << std::endl;
+      scene->set_envmap(image);
+    } else {
+      std::cerr << "Failed to load environment texture " << config.environment_texture << std::endl;
+      exit(1);
+    }
   }
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov);
