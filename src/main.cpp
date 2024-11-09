@@ -63,8 +63,8 @@ static void from_json(const json& j, SimpleSphere& s)
 static void from_json(const json& j, Config& c)
 {
   c.print_progress = j["print_progress"];
-  c.max_bounce = j["max_bounce"];
-  c.samples_per_pixel = j["samples_per_pixel"];
+  // c.max_bounce = j["max_bounce"];
+  // c.samples_per_pixel = j["samples_per_pixel"];
   c.image_width = j["image_width"];
   c.image_height = j["image_height"];
 
@@ -95,7 +95,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     material->emittance = s.emissive;
 
     if (!s.texture.empty()) {
-      material->texture = new Image(); // TODO: this is never deallocated
+      material->texture = new Image();  // TODO: this is never deallocated
       material->texture->load(s.texture);
     }
     Primitive p(Sphere(s.center, s.radius), material);
@@ -114,8 +114,8 @@ int main(int argc, char** argv)
 {
   std::filesystem::path config_path;
 
-  if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " <path to config.json>" << std::endl;
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <path to config.json> <samples> <bounces>" << std::endl;
   }
 
   config_path = std::filesystem::path(argv[1]);
@@ -130,6 +130,18 @@ int main(int argc, char** argv)
   json json_config = json::parse(file);
   Config config;
   from_json(json_config, config);
+
+  if (3 <= argc) {
+    config.samples_per_pixel = std::atoi(argv[2]);
+  } else {
+    config.samples_per_pixel = 8;
+  }
+
+  if (4 <= argc) {
+    config.max_bounce = std::atoi(argv[3]);
+  } else {
+    config.max_bounce = 3;
+  }
 
   const auto now = std::chrono::system_clock::now();
   const auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
