@@ -44,8 +44,13 @@ static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, cons
   double NoH = glm::clamp(glm::dot(N, H), 0.0, 1.0);
   double VoH = glm::clamp(glm::dot(V, H), 0.0, 1.0);
 
+#if 0
   glm::dvec3 f0 = glm::vec3(0.16 * (reflectance * reflectance));
   f0 = glm::mix(f0, base_color, metallic);
+#else
+  glm::dvec3 f0(0.04);
+  f0 = glm::mix(f0, base_color, metallic);
+#endif
 
   glm::dvec3 F = fresnel_schlick(VoH, f0);
   double D = D_GGX(NoH, roughness);
@@ -105,10 +110,11 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   return BRDF::Sample{ray, albedo};
 #else
 
-  double metallic = 0.5;
-  double roughness = 0.5;
-  double reflectance = 0.5;
+  double metallic = glm::clamp(surface->material->metallic, 0.0, 0.9);
+  double roughness = glm::clamp(surface->material->roughness, 0.01, 1.0);
+  double reflectance = 0.9;
 
+  // TODO: use better sampling
   Ray scattered = Ray(surface->point, cosine_weighted_sampling(surface->normal));
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
@@ -117,8 +123,7 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   glm::dvec3 brdf = microfacet_brdf(scattered.direction, incoming.direction, surface->normal, base_color, reflectance,
                                     metallic, roughness);
 
-  glm::dvec3 value = (brdf * cos_theta) / pdf;
-
+  glm::dvec3 value = brdf * cos_theta / pdf;
   return BRDF::Sample{scattered, value};
 #endif
 }

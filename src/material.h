@@ -20,7 +20,9 @@ struct Material {
   Image* texture = nullptr;
   glm::dvec3 emittance;
   double refraction_index = 1.52;
-  double shininess = 1000; // range [0, 1000]
+  double shininess = 1000;  // range [0, 1000]
+  double roughness = 0.5;   //
+  double metallic = 0.5;    // 0.0 for dielectrics, 1.0 for metals
 
   Material() : Material(DIFFUSE, glm::dvec3(0.0), glm::dvec3(0.0)) {}
   Material(const glm::dvec3& a) : Material(DIFFUSE, a, glm::dvec3(0.0)) {}

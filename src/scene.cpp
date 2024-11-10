@@ -130,6 +130,11 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emittance = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
     material.shininess = m.shininess;
+#if 1
+    // PBR parameters
+    material.roughness = m.roughness;
+    material.metallic = m.metallic;
+#endif
 
     if (!m.diffuse_texname.empty()) {
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
