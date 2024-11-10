@@ -210,7 +210,7 @@ int main(int argc, char** argv)
       if (batch > todo) batch = todo;
       renderer.render(batch, config.max_bounce, config.print_progress);
 
-      printf("%d Samples/Pixel\n", renderer.total_samples);
+      printf("%d/%d samples per pixel\n", renderer.total_samples, config.samples_per_pixel);
 
       auto path = result_path.parent_path() / std::filesystem::path("latest.png");
       renderer.save_image(path);
