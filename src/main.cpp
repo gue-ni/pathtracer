@@ -27,6 +27,7 @@ struct Config {
   bool print_progress;
   int max_bounce;
   int samples_per_pixel;
+  int batch_size;
   int image_width;
   int image_height;
 
@@ -102,7 +103,11 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
     if (!s.texture.empty()) {
       material->texture = new Image();  // TODO: this is never deallocated
-      material->texture->load(s.texture);
+      if (material->texture->load(s.texture)) {
+        std::cout << "Loaded texture " << s.texture << std::endl;
+      } else {
+        std::cerr << "Failed to load texture " << s.texture << std::endl;
+      }
     }
     Primitive p(Sphere(s.center, s.radius), material);
     scene->add_primitive(p);
@@ -133,13 +138,13 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
 int main(int argc, char** argv)
 {
-  std::filesystem::path config_path;
-
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <path to config.json> <samples> <bounces>" << std::endl;
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output> <samples> <bounces> <batch_size>"
+              << std::endl;
   }
 
-  config_path = std::filesystem::path(argv[1]);
+  std::filesystem::path config_path = std::filesystem::path(argv[1]);
+  std::filesystem::path result_path = std::filesystem::path(argv[2]);
 
   std::ifstream file(config_path);
 
@@ -152,29 +157,28 @@ int main(int argc, char** argv)
   Config config;
   from_json(json_config, config);
 
-  if (3 <= argc) {
-    config.samples_per_pixel = std::atoi(argv[2]);
+  if (4 <= argc) {
+    config.samples_per_pixel = std::atoi(argv[3]);
   } else {
     config.samples_per_pixel = 8;
   }
 
-  if (4 <= argc) {
-    config.max_bounce = std::atoi(argv[3]);
+  if (5 <= argc) {
+    config.max_bounce = std::atoi(argv[4]);
   } else {
     config.max_bounce = 3;
+  }
+
+  if (6 <= argc) {
+    config.batch_size = std::atoi(argv[5]);
+  } else {
+    config.batch_size = 16;
   }
 
   const auto now = std::chrono::system_clock::now();
   const auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
 
-  std::string filename = "render_" + std::to_string(config.samples_per_pixel) + "s_" +
-                         std::to_string(config.max_bounce) + "b_" + std::to_string(timestamp) + ".png";
-
-#if 0
-  auto [scene, camera] = test_scene_1();
-#else
   auto [scene, camera] = setup_scene(config);
-#endif
 
   if (!scene) {
     std::cerr << "Failed to setup scene!\n";
@@ -198,7 +202,22 @@ int main(int argc, char** argv)
 
   auto start = std::chrono::high_resolution_clock::now();
 
-  renderer.render(config.samples_per_pixel, config.max_bounce, config.print_progress);
+  int batch = config.batch_size;
+
+  if (0 < batch) {
+    while (renderer.total_samples < config.samples_per_pixel) {
+      int todo = config.samples_per_pixel - renderer.total_samples;
+      if (batch > todo) batch = todo;
+      renderer.render(batch, config.max_bounce, config.print_progress);
+
+      printf("%d Samples/Pixel\n", renderer.total_samples);
+
+      auto path = result_path.parent_path() / std::filesystem::path("latest.png");
+      renderer.save_image(path);
+    }
+  } else {
+    renderer.render(config.samples_per_pixel, config.max_bounce, config.print_progress);
+  }
 
   auto end = std::chrono::high_resolution_clock::now();
 
@@ -208,9 +227,9 @@ int main(int argc, char** argv)
   seconds -= (minutes * 60);
 
   print_stats();
+  printf("%d Samples/Pixel\n", renderer.total_samples);
   fprintf(stdout, "Render time: %dm%.3fs\n", minutes, seconds);
 
-  renderer.save_image("latest_render.png");
-  renderer.save_image(filename.c_str());
+  renderer.save_image(result_path);
   return 0;
 }

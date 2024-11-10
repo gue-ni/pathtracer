@@ -5,3 +5,4 @@ CMakeSettings.json
 *.blend1
 /doc/models/textures
 assets
+artefacts
