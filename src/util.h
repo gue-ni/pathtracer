@@ -3,6 +3,10 @@
 #include <glm/glm.hpp>
 #include <random>
 #include <array>
+#include <iostream>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/io.hpp>
 
 constexpr double pi = 3.14159265359;
 
@@ -49,6 +53,21 @@ inline glm::dvec3 rgb(const RGB& color)
   return rgb(color.x, color.y, color.z);
 }
 
+// https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
+inline glm::dmat3 local_to_world(const glm::dvec3& up)
+{
+  constexpr glm::dvec3 world_up(0, 1, 0);
+
+  constexpr double epsilon = 0.0001;
+  if (glm::all(glm::epsilonEqual(up, world_up, epsilon))) {
+    return glm::mat3(1.0);  // identity
+  }
+
+  glm::dvec3 right = glm::cross(up, world_up);
+  glm::dvec3 forward = glm::cross(-right, up);
+  return glm::dmat3(right, up, forward);
+}
+
 inline double random_double()
 {
   static std::random_device rd;
@@ -57,18 +76,21 @@ inline double random_double()
   return dist(gen);
 }
 
+// theta is polar angle
+// phi is azimuth angle (angle around polar axis)
+// https://ameye.dev/notes/sampling-the-hemisphere/
 inline glm::dvec3 vector_from_spherical(double theta, double phi)
 {
-  double x = std::sin(phi) * std::cos(theta);
-  double y = std::sin(phi) * std::sin(theta);
-  double z = std::cos(phi);
+  double x = std::cos(phi) * std::sin(theta);
+  double y = std::cos(theta);
+  double z = std::sin(phi) * std::sin(theta);
   return {x, y, z};
 }
 
 inline glm::dvec3 random_unit_vector()
 {
-  double theta = random_double() * 2.0f * pi;
-  double phi = std::acos(1.0f - 2.0f * random_double());
+  double phi = 2.0 * pi * random_double();
+  double theta = std::acos(1.0 - 2.0 * random_double());
   return vector_from_spherical(theta, phi);
 }
 
@@ -94,7 +116,20 @@ inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
 
 inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
 {
+#if 0
   return glm::normalize(normal + random_unit_vector());
+#else
+  glm::mat3 m = local_to_world(normal);
+
+  double r0 = random_double();
+  double r1 = random_double();
+
+  double phi = 2.0 * pi * r0;
+  double theta = std::acos(std::sqrt(r1));
+
+  glm::dvec3 sample_direction = vector_from_spherical(theta, phi);
+  return m * sample_direction;
+#endif
 }
 
 // convert from linear space to gamma space

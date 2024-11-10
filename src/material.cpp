@@ -3,15 +3,7 @@
 #include "geometry.h"
 #include "util.h"
 
-glm::dmat3 local_to_world(const glm::dvec3& direction)
-{
-  // TODO
-  // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
-  glm::dvec3 world_up(0, 1, 0);
-  glm::dvec3 right = glm::cross(direction, world_up);
-  glm::dvec3 up = glm::cross(right, direction);
-  return glm::dmat3(direction, up, right);
-}
+
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 

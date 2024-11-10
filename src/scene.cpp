@@ -21,27 +21,8 @@ Scene::Scene() : m_bvh(nullptr), m_environment_map(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
-#define ENABLE_BVH 1
-#if ENABLE_BVH == 0
-  Intersection closest;
-  closest.hit = false;
-  closest.t = 1e9;
-
-  for (const Primitive& primitive : primitives) {
-    std::optional<Intersection> result = primitive.intersect(ray);
-
-    if (result.has_value()) {
-      if (result.value().t < closest.t) {
-        closest = result.value();
-      }
-    }
-  }
-
-  return closest.hit ? std::optional<Intersection>(closest) : std::nullopt;
-#else
   assert(m_bvh != nullptr);
   return m_bvh->traverse(ray);
-#endif
 }
 
 glm::dvec3 Scene::background(const Ray& r)
@@ -56,7 +37,7 @@ glm::dvec3 Scene::background(const Ray& r)
     return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 #elif (BACKGROUND == BACKGROUND_WHITE)
     return glm::dvec3(1);
-#elif (BACKGROND == BACKGROUND_BLACK)
+#elif (BACKGROUND == BACKGROUND_BLACK)
     return glm::dvec3(0);
 #else
     return glm::dvec3(1, 0, 1);
