@@ -1,5 +1,15 @@
 # Pathtracer
 
+## Features
+
+-   obj loading
+-   textures
+-   environment maps
+-   dielectrics (refraction and caustics)
+-   emissive materials
+-   bounding volume hierarchy
+-   depth of field
+
 ## Build
 
 ```bash

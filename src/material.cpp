@@ -3,14 +3,14 @@
 #include "geometry.h"
 #include "util.h"
 
-glm::dmat3 local_to_world(const glm::dvec3& up)
+glm::dmat3 local_to_world(const glm::dvec3& direction)
 {
   // TODO
   // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
   glm::dvec3 world_up(0, 1, 0);
-  glm::dvec3 right = glm::cross(up, world_up);
-  glm::dvec3 forward = glm::cross(right, up);
-  return glm::dmat3(right, up, forward);
+  glm::dvec3 right = glm::cross(direction, world_up);
+  glm::dvec3 up = glm::cross(right, direction);
+  return glm::dmat3(direction, up, right);
 }
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
@@ -33,12 +33,7 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
 
-  glm::dvec3 albedo = surface->material->albedo;
-  if (surface->material->texture) {
-    // image textures are generally sRGB, so we need to convert them to linear space
-    albedo = reverse_gamma_correction(surface->material->texture->sample(surface->uv));
-  }
-
+  glm::dvec3 albedo = surface->albedo();
   glm::dvec3 brdf_value = albedo / pi;
   return BRDF::Sample{scattered, brdf_value * cos_theta / pdf};
 }
@@ -56,12 +51,7 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
     ray.direction += (fuzz * random_unit_vector());
   }
 
-  glm::dvec3 albedo = surface->material->albedo;
-  if (surface->material->texture) {
-    // image textures are generally sRGB, so we need to convert them to linear space
-    albedo = reverse_gamma_correction(surface->material->texture->sample(surface->uv));
-  }
-
+  glm::dvec3 albedo = surface->albedo();
   return BRDF::Sample{ray, albedo};
 }
 

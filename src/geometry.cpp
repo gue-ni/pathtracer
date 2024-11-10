@@ -15,6 +15,18 @@
 std::atomic<uint64_t> intersection_test_counter = 0;
 #endif
 
+
+  glm::dvec3 Intersection::albedo() const
+  {
+    glm::dvec3 albedo = material->albedo;
+    if (material->texture) {
+      // image textures are generally sRGB, so we need to convert them to linear space
+      return reverse_gamma_correction(material->texture->sample(uv));
+    } else {
+      return material->albedo;
+    }
+  }
+
 bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t)
 {
   auto oc = s.center - r.origin;

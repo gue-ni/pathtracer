@@ -19,6 +19,7 @@ struct Intersection {
   Material* material;
   bool inside;
   inline bool is_closer_than(const Intersection& other) const { return t < other.t; }
+  glm::dvec3 albedo() const;
 };
 
 std::optional<Intersection> closest(const std::optional<Intersection>& a, const std::optional<Intersection>& b);
@@ -26,7 +27,7 @@ std::optional<Intersection> closest(const std::optional<Intersection>& a, const 
 struct Sphere {
   glm::dvec3 center;
   double radius;
-  Sphere() : center(0,0,0), radius(1) {}
+  Sphere() : center(0, 0, 0), radius(1) {}
   Sphere(const glm::dvec3& c, double r) : center(c), radius(r) {}
   glm::dvec2 texcoord(const glm::dvec3& point_on_sphere) const;
   bool intersect(const Ray& r, const Interval<double>& ti, double& t) const;
