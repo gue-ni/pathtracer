@@ -119,16 +119,10 @@ inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
 #if 0
   return glm::normalize(normal + random_unit_vector());
 #else
-  glm::mat3 m = local_to_world(normal);
-
-  double r0 = random_double();
-  double r1 = random_double();
-
+  double r0 = random_double(), r1 = random_double();
   double phi = 2.0 * pi * r0;
   double theta = std::acos(std::sqrt(r1));
-
-  glm::dvec3 sample_direction = vector_from_spherical(theta, phi);
-  return m * sample_direction;
+  return local_to_world(normal) * vector_from_spherical(theta, phi);
 #endif
 }
 

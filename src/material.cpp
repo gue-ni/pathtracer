@@ -1,5 +1,6 @@
 #include "material.h"
 #include <cassert>
+#include <cmath>
 #include "geometry.h"
 #include "util.h"
 
@@ -115,9 +116,21 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   double reflectance = 0.9;
 
   // TODO: use better sampling
-  Ray scattered = Ray(surface->point, cosine_weighted_sampling(surface->normal));
+#if 1
+  Ray scattered(surface->point, cosine_weighted_sampling(surface->normal));
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
+#else
+  // importance sampling
+  double r0 = random_double(), r1 = random_double();
+  double phi = 2.0 * pi * r0;
+  double alpha = roughness * roughness;
+  double theta = std::atan((alpha * std::sqrt(r1)) / (std::sqrt(1.0 - r1)));
+  glm::dvec3 direction = local_to_world(surface->normal) * vector_from_spherical(theta, phi);
+  Ray scattered(surface->point, direction);
+  double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
+  double pdf =
+#endif
 
   glm::dvec3 base_color = surface->albedo();
   glm::dvec3 brdf = microfacet_brdf(scattered.direction, incoming.direction, surface->normal, base_color, reflectance,
