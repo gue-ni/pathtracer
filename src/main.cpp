@@ -201,7 +201,22 @@ int main(int argc, char** argv)
 
   auto start = std::chrono::high_resolution_clock::now();
 
-  renderer.render(config.samples_per_pixel, config.max_bounce, config.print_progress);
+#if 0
+  renderer.render_old(config.samples_per_pixel, config.max_bounce, config.print_progress);
+#else
+  int batch = 16;
+
+  while (renderer.total_samples < config.samples_per_pixel) {
+    int todo = config.samples_per_pixel - renderer.total_samples;
+    if (batch > todo) batch = todo;
+    renderer.render(batch, config.max_bounce, config.print_progress);
+    std::string p0 = "artefacts/intermediate.png";
+    renderer.save_image(std::filesystem::path(p0));
+    // std::string p1 = "artefacts/intermediate_"  + std::to_string(renderer.total_samples) + ".png";
+    // renderer.save_image(std::filesystem::path(p1));
+    std::cout << "Finished " << renderer.total_samples << std::endl;
+  }
+#endif
 
   auto end = std::chrono::high_resolution_clock::now();
 
@@ -213,8 +228,6 @@ int main(int argc, char** argv)
   print_stats();
   fprintf(stdout, "Render time: %dm%.3fs\n", minutes, seconds);
 
-  // renderer.save_image("latest_render.png");
-  auto tmp = result_path.string();
-  renderer.save_image(tmp.c_str());
+  renderer.save_image(result_path);
   return 0;
 }

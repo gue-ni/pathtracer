@@ -19,6 +19,10 @@ static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3
 Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
+
+  for (int i = 0; i < m_camera->width() * m_camera->height(); i++) {
+    m_buffer[i] = glm::dvec3(0.0);
+  }
 }
 
 Renderer::~Renderer()
@@ -26,7 +30,7 @@ Renderer::~Renderer()
   if (m_buffer != nullptr) delete[] m_buffer;
 }
 
-void Renderer::render(int samples, int max_bounce, bool print_progress)
+void Renderer::render_old(int samples, int max_bounce, bool print_progress)
 {
   double sample_weight = 1.0 / double(samples);
 
@@ -47,6 +51,30 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
       m_buffer[y * m_camera->width() + x] = color * sample_weight;
     }
   }
+}
+
+void Renderer::render(int samples, int max_bounce, bool print_progress)
+{
+  double sample_weight = 1.0 / double(samples);
+
+#pragma omp parallel for schedule(dynamic, 1)
+  for (int y = 0; y < m_camera->height(); y++) {
+    if (print_progress) {
+      printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
+    }
+
+    for (int x = 0; x < m_camera->width(); x++) {
+      for (int s = 0; s < samples; s++) {
+        Ray ray = m_camera->get_ray(x, y);
+        auto color = trace_ray(ray, max_bounce);
+
+        glm::dvec3 previous = m_buffer[y * m_camera->width() + x];
+        m_buffer[y * m_camera->width() + x] = glm::mix(previous, color, 1.0 / double(total_samples + s + 1));
+      }
+    }
+  }
+
+  total_samples += samples;
 }
 
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
@@ -73,7 +101,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
   return material->emittance + trace_ray(sample.ray, depth - 1) * sample.value;
 }
 
-void Renderer::save_image(const char* path)
+void Renderer::save_image(const std::filesystem::path& path)
 {
   Image output(m_camera->width(), m_camera->height(), 3);
 
@@ -86,7 +114,7 @@ void Renderer::save_image(const char* path)
     }
   }
 
-  output.write(std::filesystem::path(path));
+  output.write(path);
 
   std::cout << "Save image to " << path << std::endl;
 }
