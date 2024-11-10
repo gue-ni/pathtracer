@@ -64,7 +64,6 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
     }
 
     for (int x = 0; x < m_camera->width(); x++) {
-
       int i = y * m_camera->width() + x;
       glm::dvec3 result = m_buffer[i];
 
