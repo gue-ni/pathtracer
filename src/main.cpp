@@ -102,7 +102,11 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
     if (!s.texture.empty()) {
       material->texture = new Image();  // TODO: this is never deallocated
-      material->texture->load(s.texture);
+      if (material->texture->load(s.texture)) {
+        std::cout << "Loaded texture " << s.texture << std::endl;
+      } else {
+        std::cerr << "Failed to load texture " << s.texture << std::endl;
+      }
     }
     Primitive p(Sphere(s.center, s.radius), material);
     scene->add_primitive(p);
@@ -133,13 +137,12 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
 int main(int argc, char** argv)
 {
-  std::filesystem::path config_path;
-
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <path to config.json> <samples> <bounces>" << std::endl;
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output> <samples> <bounces>" << std::endl;
   }
 
-  config_path = std::filesystem::path(argv[1]);
+  std::filesystem::path config_path = std::filesystem::path(argv[1]);
+  std::filesystem::path result_path = std::filesystem::path(argv[2]);
 
   std::ifstream file(config_path);
 
@@ -152,14 +155,14 @@ int main(int argc, char** argv)
   Config config;
   from_json(json_config, config);
 
-  if (3 <= argc) {
-    config.samples_per_pixel = std::atoi(argv[2]);
+  if (4 <= argc) {
+    config.samples_per_pixel = std::atoi(argv[3]);
   } else {
     config.samples_per_pixel = 8;
   }
 
-  if (4 <= argc) {
-    config.max_bounce = std::atoi(argv[3]);
+  if (5 <= argc) {
+    config.max_bounce = std::atoi(argv[4]);
   } else {
     config.max_bounce = 3;
   }
@@ -210,7 +213,8 @@ int main(int argc, char** argv)
   print_stats();
   fprintf(stdout, "Render time: %dm%.3fs\n", minutes, seconds);
 
-  renderer.save_image("latest_render.png");
-  renderer.save_image(filename.c_str());
+  // renderer.save_image("latest_render.png");
+  auto tmp = result_path.string();
+  renderer.save_image(tmp.c_str());
   return 0;
 }

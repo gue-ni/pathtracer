@@ -1,0 +1,101 @@
+{
+	"print_progress": true,
+	"image_width": 640,
+	"image_height": 360,
+	"camera_aperture": 0.5,
+	"camera_focus_distance": 230,
+	"camera_position": {
+		"x": 0,
+		"y": 50,
+		"z": 230
+	},
+	"camera_target": {
+		"x": 0,
+		"y": 50,
+		"z": 0
+	},
+	"camera_fov": 20.0,
+	"spheres": [
+		{
+			"center": {
+				"x": -70,
+				"y": 20,
+				"z": 0
+			},
+			"radius": 20,
+			"type": "DIFFUSE",
+			"albedo": {
+				"x": 1,
+				"y": 0,
+				"z": 1
+			},
+			"emissive": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"texture": "assets/textures/uv-test.png"
+		},
+		{
+			"center": {
+				"x": 70,
+				"y": 20,
+				"z": 0
+			},
+			"radius": 20,
+			"type": "SPECULAR",
+			"albedo": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"emissive": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"texture": ""
+		},
+		{
+			"center": {
+				"x": -30,
+				"y": 15,
+				"z": 50
+			},
+			"radius": 15,
+			"type": "TRANSMISSIVE",
+			"albedo": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"emissive": {
+				"x": 0,
+				"y": 0,
+				"z": 0
+			},
+			"texture": ""
+		},
+		{
+			"center": {
+				"x": 30,
+				"y": 15,
+				"z": 50
+			},
+			"radius": 15,
+			"type": "DIFFUSE",
+			"albedo": {
+				"x": 1,
+				"y": 1,
+				"z": 1
+			},
+			"emissive": {
+				"x": 2,
+				"y": 0,
+				"z": 2
+			},
+			"texture": ""
+		}
+	],
+	"models": ["assets/cornell_box/cornell_box.obj"]
+}
