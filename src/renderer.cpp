@@ -64,7 +64,9 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
     }
 
     for (int x = 0; x < m_camera->width(); x++) {
-      glm::dvec3 result = m_buffer[y * m_camera->width() + x];
+
+      int i = y * m_camera->width() + x;
+      glm::dvec3 result = m_buffer[i];
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
@@ -72,7 +74,7 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
         result = glm::mix(result, color, 1.0 / double(total_samples + s + 1));
       }
 
-      m_buffer[y * m_camera->width() + x] = result;
+      m_buffer[i] = result;
     }
   }
 

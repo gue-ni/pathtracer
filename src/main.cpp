@@ -212,7 +212,7 @@ int main(int argc, char** argv)
 
       printf("%d Samples/Pixel\n", renderer.total_samples);
 
-      auto path = result_path.parent_path() / std::filesystem::path("intermediate.png");
+      auto path = result_path.parent_path() / std::filesystem::path("latest.png");
       renderer.save_image(path);
     }
   } else {
