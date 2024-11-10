@@ -1,5 +1,5 @@
 {
-	"print_progress": true,
+	"print_progress": false,
 	"image_width": 640,
 	"image_height": 360,
 	"camera_aperture": 0.5,

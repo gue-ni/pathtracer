@@ -5,9 +5,10 @@ $pathtracer = "./build/Release/pt.exe"
 $config = $args[0]
 $samples = $args[1]
 $bounces = 3
+$batch = 10
 
 $result_path = "artefacts/render_${git_hash}_${samples}_${bounces}_${datestamp}.png"
 $latest_path = "artefacts/latest.png"
 
-& $pathtracer $config $result_path $samples $bounces
+& $pathtracer $config $result_path $samples $bounces $batch
 cp $result_path $latest_path

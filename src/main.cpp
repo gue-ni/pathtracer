@@ -27,6 +27,7 @@ struct Config {
   bool print_progress;
   int max_bounce;
   int samples_per_pixel;
+  int batch_size;
   int image_width;
   int image_height;
 
@@ -138,7 +139,8 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 int main(int argc, char** argv)
 {
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output> <samples> <bounces>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output> <samples> <bounces> <batch_size>"
+              << std::endl;
   }
 
   std::filesystem::path config_path = std::filesystem::path(argv[1]);
@@ -167,17 +169,16 @@ int main(int argc, char** argv)
     config.max_bounce = 3;
   }
 
+  if (6 <= argc) {
+    config.batch_size = std::atoi(argv[5]);
+  } else {
+    config.batch_size = 16;
+  }
+
   const auto now = std::chrono::system_clock::now();
   const auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
 
-  std::string filename = "render_" + std::to_string(config.samples_per_pixel) + "s_" +
-                         std::to_string(config.max_bounce) + "b_" + std::to_string(timestamp) + ".png";
-
-#if 0
-  auto [scene, camera] = test_scene_1();
-#else
   auto [scene, camera] = setup_scene(config);
-#endif
 
   if (!scene) {
     std::cerr << "Failed to setup scene!\n";
@@ -201,22 +202,22 @@ int main(int argc, char** argv)
 
   auto start = std::chrono::high_resolution_clock::now();
 
-#if 0
-  renderer.render_old(config.samples_per_pixel, config.max_bounce, config.print_progress);
-#else
-  int batch = 16;
+  int batch = config.batch_size;
 
-  while (renderer.total_samples < config.samples_per_pixel) {
-    int todo = config.samples_per_pixel - renderer.total_samples;
-    if (batch > todo) batch = todo;
-    renderer.render(batch, config.max_bounce, config.print_progress);
-    std::string p0 = "artefacts/intermediate.png";
-    renderer.save_image(std::filesystem::path(p0));
-    // std::string p1 = "artefacts/intermediate_"  + std::to_string(renderer.total_samples) + ".png";
-    // renderer.save_image(std::filesystem::path(p1));
-    std::cout << "Finished " << renderer.total_samples << std::endl;
+  if (0 < batch) {
+    while (renderer.total_samples < config.samples_per_pixel) {
+      int todo = config.samples_per_pixel - renderer.total_samples;
+      if (batch > todo) batch = todo;
+      renderer.render(batch, config.max_bounce, config.print_progress);
+
+      printf("%d Samples/Pixel\n", renderer.total_samples);
+
+      auto path = result_path.parent_path() / std::filesystem::path("intermediate.png");
+      renderer.save_image(path);
+    }
+  } else {
+    renderer.render(config.samples_per_pixel, config.max_bounce, config.print_progress);
   }
-#endif
 
   auto end = std::chrono::high_resolution_clock::now();
 
@@ -226,6 +227,7 @@ int main(int argc, char** argv)
   seconds -= (minutes * 60);
 
   print_stats();
+  printf("%d Samples/Pixel\n", renderer.total_samples);
   fprintf(stdout, "Render time: %dm%.3fs\n", minutes, seconds);
 
   renderer.save_image(result_path);
