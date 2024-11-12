@@ -4,6 +4,9 @@
 #include "geometry.h"
 #include "util.h"
 
+// Cook-Torrance Microface BRDF
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// https://computergraphics.stackexchange.com/questions/7656/importance-sampling-microfacet-ggx
 static glm::dvec3 fresnel_schlick(double cos_theta, const glm::dvec3& F0)
 {
   return F0 + (glm::dvec3(1.0) - F0) * glm::pow(1.0 - cos_theta, 5.0);
@@ -18,6 +21,20 @@ static double D_GGX(double NoH, double roughness)
   return alpha2 * (1 / pi) / (b * b);
 }
 
+static double pdf_GGX(double theta, double roughness)
+{
+  double alpha = roughness * roughness;
+  double alpha2 = alpha * alpha;
+  double cos_theta = std::cos(theta);
+  // double b = (alpha2 - 1.0) * (cos_theta * cos_theta) + 1.0;
+  // return (alpha2 * cos_theta) / (pi * (b * b));
+
+  double num = (alpha2 * cos_theta);
+  double a = ((alpha2 - 1.0) * (cos_theta * cos_theta) + 1.0);
+  double denom = pi * (a * a);
+  return num / denom;
+}
+
 static double G1_GGX_Schlick(double NoV, double roughness)
 {
   double alpha = roughness * roughness;
@@ -30,14 +47,12 @@ static double G_Smith(double NoV, double NoL, double roughness)
   return G1_GGX_Schlick(NoV, roughness) * G1_GGX_Schlick(NoL, roughness);
 }
 
-// Cook-Torrance Microface BRDF
 // https://www.youtube.com/watch?v=gya7x9H3mV0
 static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, const glm::dvec3& N,
                                   const glm::dvec3& base_color, double reflectance, double metallic, double roughness
 
 )
 {
-  // half-way vector
   glm::dvec3 H = glm::normalize(V + L);
 
   double NoV = glm::clamp(glm::dot(N, V), 0.0, 1.0);
@@ -66,6 +81,7 @@ static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, cons
 
   return diffuse + specular;
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
@@ -95,7 +111,7 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 
 BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
-#if 0
+#if 1
   glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
   Ray ray = Ray(surface->point, reflected);
 
@@ -116,7 +132,7 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   double reflectance = 0.9;
 
   // TODO: use better sampling
-#if 1
+#if 0
   Ray scattered(surface->point, cosine_weighted_sampling(surface->normal));
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
   double pdf = cos_theta / pi;
@@ -125,11 +141,11 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   double r0 = random_double(), r1 = random_double();
   double phi = 2.0 * pi * r0;
   double alpha = roughness * roughness;
-  double theta = std::atan((alpha * std::sqrt(r1)) / (std::sqrt(1.0 - r1)));
+  double theta = std::atan(alpha * std::sqrt(r1 / (1.0 - r1)));
   glm::dvec3 direction = local_to_world(surface->normal) * vector_from_spherical(theta, phi);
   Ray scattered(surface->point, direction);
   double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
-  double pdf =
+  double pdf = pdf_GGX(theta, roughness);
 #endif
 
   glm::dvec3 base_color = surface->albedo();
