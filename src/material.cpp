@@ -4,6 +4,8 @@
 #include "geometry.h"
 #include "util.h"
 
+static double abs_dot(const glm::dvec3& a, const glm::dvec3& b) { return glm::clamp(glm::dot(a, b), 0.0, 1.0); }
+
 // Cook-Torrance Microface BRDF
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // https://computergraphics.stackexchange.com/questions/7656/importance-sampling-microfacet-ggx
@@ -81,6 +83,23 @@ static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, cons
 
   return diffuse + specular;
 }
+
+static glm::dvec3 SchlickFresnel(glm::dvec3 r0, double radians)
+{
+  // -- The common Schlick Fresnel approximation
+  double exponential = std::pow(1.0 - radians, 5.0);
+  return r0 + (glm::dvec3(1.0) - r0) * exponential;
+}
+
+//====================================================================
+// non height-correlated masking-shadowing function is described here:
+static double SmithGGXMaskingShadowing(double NoL, double NoV, double a2)
+{
+  double denomA = NoV * glm::sqrt(a2 + (1.0 - a2) * NoL * NoL);
+  double denomB = NoL * glm::sqrt(a2 + (1.0 - a2) * NoV * NoV);
+  return 2.0 * NoL * NoV / (denomA + denomB);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
@@ -90,7 +109,7 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-#if 1
+#if 0
       return sample_specular(incoming);
 #else
       return sample_microfacet(incoming);
@@ -112,32 +131,71 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
   return BRDF::Sample{outgoing, (albedo / pi) * cos_theta / pdf};
 }
 
+BRDF::Sample BRDF::sample_mirror(const Ray& incoming)
+{
+  Ray outgoing(surface->point, glm::reflect(incoming.direction, surface->normal));
+  return BRDF::Sample{outgoing, surface->albedo()};
+}
+
 // https://schuttejoe.github.io/post/ggximportancesamplingpart1/
 BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
 {
   double metallic = glm::clamp(surface->material->metallic, 0.001, 0.999);
   double roughness = glm::clamp(surface->material->roughness, 0.001, 0.999);
 
-
+  // coordinate transformations
   glm::mat3 transform = local_to_world(surface->normal);
-  glm::dvec3 wo = glm::inverse(transform) * (incoming.direction);
+  glm::mat3 inverse_transform = glm::inverse(transform);
+
+  glm::dvec3 V = inverse_transform * (-incoming.direction);
+  glm::dvec3 N = inverse_transform * surface->normal;
 
   double e0 = random_double(), e1 = random_double();
 
+#if 1
+  double a = roughness;
+  double a2 = a * a;
+
+  float phi = 2.0 * pi * e1;
   double theta = std::acos(std::sqrt((1.0 - e0) / ((a2 - 1.0) * e0 + 1.0)));
-  float phi = 2.0 * pi* e1;
-  glm::dvec3 wm = vector_from_spherical(theta, phi);
-  glm::dvec3 wi = glm::reflect(wo, wm);
 
-  glm::dvec3 brdf_value(0.0);
+  glm::dvec3 H = vector_from_spherical(theta, phi);
+  glm::dvec3 L = glm::reflect(-V, H);
 
-  Ray outgoing(surface->point, wi * transform);
-  return BRDF::Sample{outgoing, brdf_value};
+  double VoH = abs_dot(V, H);
+  double VoN = abs_dot(V, N);
+  double NoL = abs_dot(N, L);
+  double HoN = abs_dot(H, N);
+
+  if (L.y <= 0.0 || glm::dot(L, H) <= 0.0) {
+    Ray outgoing(surface->point, transform * L);
+    return BRDF::Sample{outgoing, glm::dvec3(0.0)};
+  }
+
+  glm::dvec3 f0 = glm::mix(glm::dvec3(0.04), surface->albedo(), metallic);
+  glm::dvec3 F = fresnel_schlick(VoH, f0);
+  double G = SmithGGXMaskingShadowing(L.y, V.y, a2);
+
+  double weight = VoH / (V.y * H.y);
+  glm::dvec3 value = F * G * weight;
+
+#else
+  double phi = 2.0 * pi * e0;
+  double theta = std::acos(std::sqrt(e1));
+  glm::dvec3 L = vector_from_spherical(theta, phi);
+  double cos_theta = std::cos(theta);
+  double pdf = cos_theta / pi;
+  glm::dvec3 value = (surface->albedo() / pi) * cos_theta / pdf;
+#endif
+
+  Ray outgoing;
+  outgoing.origin = surface->point;
+  outgoing.direction = transform * L;
+  return BRDF::Sample{outgoing, value};
 }
 
 BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
-#if 1
   glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
   Ray outgoing = Ray(surface->point, reflected);
 
@@ -151,36 +209,6 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 
   glm::dvec3 albedo = surface->albedo();
   return BRDF::Sample{outgoing, albedo};
-#else
-
-  double metallic = glm::clamp(surface->material->metallic, 0.0, 0.9);
-  double roughness = glm::clamp(surface->material->roughness, 0.01, 1.0);
-  double reflectance = 0.9;
-
-  // TODO: use better sampling
-#if 0
-  Ray scattered(surface->point, cosine_weighted_sampling(surface->normal));
-  double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
-  double pdf = cos_theta / pi;
-#else
-  // importance sampling
-  double r0 = random_double(), r1 = random_double();
-  double phi = 2.0 * pi * r0;
-  double alpha = roughness * roughness;
-  double theta = std::atan(alpha * std::sqrt(r1 / (1.0 - r1)));
-  glm::dvec3 direction = local_to_world(surface->normal) * vector_from_spherical(theta, phi);
-  Ray scattered(surface->point, direction);
-  double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
-  double pdf = pdf_GGX(theta, roughness);
-#endif
-
-  glm::dvec3 base_color = surface->albedo();
-  glm::dvec3 brdf = microfacet_brdf(scattered.direction, incoming.direction, surface->normal, base_color, reflectance,
-                                    metallic, roughness);
-
-  glm::dvec3 value = brdf * cos_theta / pdf;
-  return BRDF::Sample{scattered, value};
-#endif
 }
 
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)

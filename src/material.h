@@ -43,6 +43,8 @@ class BRDF
  private:
   Intersection* surface;
   Sample sample_diffuse(const Ray& incoming);
+  Sample sample_mirror(const Ray& incoming);
   Sample sample_specular(const Ray& incoming);
+  Sample sample_microfacet(const Ray& incoming);
   Sample sample_transmissive(const Ray& incoming);
 };
