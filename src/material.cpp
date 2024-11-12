@@ -163,22 +163,24 @@ BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
   glm::dvec3 L = glm::reflect(-V, H);
 
   double VoH = abs_dot(V, H);
-  double VoN = abs_dot(V, N);
-  double NoL = abs_dot(N, L);
-  double HoN = abs_dot(H, N);
 
-  if (L.y <= 0.0 || glm::dot(L, H) <= 0.0) {
+  // since we are in tangent space, dot product with the normal
+  // is just the y axis
+  double NoL = L.y;
+  double NoV = V.y;
+  double NoH = H.y;
+
+  if (NoL <= 0.0 || glm::dot(L, H) <= 0.0) {
     Ray outgoing(surface->point, transform * L);
     return BRDF::Sample{outgoing, glm::dvec3(0.0)};
   }
 
   glm::dvec3 f0 = glm::mix(glm::dvec3(0.04), surface->albedo(), metallic);
   glm::dvec3 F = fresnel_schlick(VoH, f0);
-  double G = SmithGGXMaskingShadowing(L.y, V.y, a2);
+  double G = SmithGGXMaskingShadowing(NoL, NoV, a2);
 
-  double weight = VoH / (V.y * H.y);
+  double weight = VoH / (NoV * NoH);
   glm::dvec3 value = F * G * weight;
-
 #else
   double phi = 2.0 * pi * e0;
   double theta = std::acos(std::sqrt(e1));
