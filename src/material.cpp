@@ -74,7 +74,11 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
+#if 1
       return sample_specular(incoming);
+#else
+      return sample_microfacet(incoming);
+#endif
     case Material::TRANSMISSIVE:
       return sample_transmissive(incoming);
     default:
@@ -84,31 +88,53 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
 
 BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 {
-  Ray scattered = Ray(surface->point, cosine_weighted_sampling(surface->normal));
-  double cos_theta = glm::max(glm::dot(surface->normal, scattered.direction), 0.0);
+  Ray outgoing = Ray(surface->point, cosine_weighted_sampling(surface->normal));
+  double cos_theta = glm::max(glm::dot(surface->normal, outgoing.direction), 0.0);
   double pdf = cos_theta / pi;
 
   glm::dvec3 albedo = surface->albedo();
-  glm::dvec3 brdf_value = albedo / pi;
-  return BRDF::Sample{scattered, brdf_value * cos_theta / pdf};
+  return BRDF::Sample{outgoing, (albedo / pi) * cos_theta / pdf};
+}
+
+// https://schuttejoe.github.io/post/ggximportancesamplingpart1/
+BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
+{
+  double metallic = glm::clamp(surface->material->metallic, 0.0, 0.9);
+  double roughness = glm::clamp(surface->material->roughness, 0.01, 1.0);
+
+  glm::dvec3 brdf_value;
+
+  glm::dvec3 wo = -incoming.direction;
+
+  double e0 = random_double(), e1 = random_double();
+
+  double theta = std::acos(std::sqrt((1.0 - e0) / ((a2 - 1.0) * e0 + 1.0)));
+  float phi = 2.0 * pi* e1;
+  glm::dvec3 wm = local_to_world(surface->normal) * vector_from_spherical(theta, phi);
+  glm::dvec3 wi = glm::reflect(wo, wm);
+
+  Ray outgoing(surface->point, wi);
+  
+
+  return BRDF::Sample{outgoing, brdf_value};
 }
 
 BRDF::Sample BRDF::sample_specular(const Ray& incoming)
 {
-#if 0
+#if 1
   glm::dvec3 reflected = glm::reflect(incoming.direction, surface->normal);
-  Ray ray = Ray(surface->point, reflected);
+  Ray outgoing = Ray(surface->point, reflected);
 
   // TODO: this is probably not linear
   double shininess = surface->material->shininess;
   double max_shininess = 1000;
   if (shininess < max_shininess) {
     double fuzz = 1 - (shininess / max_shininess);
-    ray.direction += (fuzz * random_unit_vector());
+    outgoing.direction += (fuzz * random_unit_vector());
   }
 
   glm::dvec3 albedo = surface->albedo();
-  return BRDF::Sample{ray, albedo};
+  return BRDF::Sample{outgoing, albedo};
 #else
 
   double metallic = glm::clamp(surface->material->metallic, 0.0, 0.9);
@@ -146,9 +172,9 @@ BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
-  Ray refracted;
-  refracted.origin = surface->point;
-  refracted.direction = glm::refract(incoming.direction, surface->normal, ri);
+  Ray outgoing;
+  outgoing.origin = surface->point;
+  outgoing.direction = glm::refract(incoming.direction, surface->normal, ri);
 
-  return BRDF::Sample{refracted, glm::dvec3(1, 1, 1)};
+  return BRDF::Sample{outgoing, glm::dvec3(1, 1, 1)};
 }
