@@ -99,23 +99,23 @@ BRDF::Sample BRDF::sample_diffuse(const Ray& incoming)
 // https://schuttejoe.github.io/post/ggximportancesamplingpart1/
 BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
 {
-  double metallic = glm::clamp(surface->material->metallic, 0.0, 0.9);
-  double roughness = glm::clamp(surface->material->roughness, 0.01, 1.0);
+  double metallic = glm::clamp(surface->material->metallic, 0.001, 0.999);
+  double roughness = glm::clamp(surface->material->roughness, 0.001, 0.999);
 
-  glm::dvec3 brdf_value;
 
-  glm::dvec3 wo = -incoming.direction;
+  glm::mat3 transform = local_to_world(surface->normal);
+  glm::dvec3 wo = glm::inverse(transform) * (incoming.direction);
 
   double e0 = random_double(), e1 = random_double();
 
   double theta = std::acos(std::sqrt((1.0 - e0) / ((a2 - 1.0) * e0 + 1.0)));
   float phi = 2.0 * pi* e1;
-  glm::dvec3 wm = local_to_world(surface->normal) * vector_from_spherical(theta, phi);
+  glm::dvec3 wm = vector_from_spherical(theta, phi);
   glm::dvec3 wi = glm::reflect(wo, wm);
 
-  Ray outgoing(surface->point, wi);
-  
+  glm::dvec3 brdf_value(0.0);
 
+  Ray outgoing(surface->point, wi * transform);
   return BRDF::Sample{outgoing, brdf_value};
 }
 
