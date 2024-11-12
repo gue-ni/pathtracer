@@ -37,20 +37,21 @@ Ray Camera::get_ray(int x, int y) const
 
   glm::dvec3 dir = glm::normalize(view_point - m_position);
 
-  double focus_dist = m_focus_distance;
-  glm::dvec3 focus_point = m_position + (dir * focus_dist);
+  glm::dvec3 focus_point = m_position + dir;
 
-  auto r = random_in_unit_disk();
-  double defocus_angle = m_aperture;
-  auto defocus_radius = focus_dist * std::tan(glm::radians(defocus_angle / 2.0));
-  auto defocus_disk_u = m_up * defocus_radius;
-  auto defocus_disk_v = m_right * defocus_radius;
-
-#if 1
-  glm::dvec3 origin = m_position + (r.x * defocus_disk_v) + (r.y * defocus_disk_u);
-#else
   glm::dvec3 origin = m_position;
-#endif
+
+  if (m_aperture > 0 && m_focus_distance > 0) {
+    double focus_dist = m_focus_distance;
+    focus_point = m_position + (dir * focus_dist);
+
+    auto r = random_in_unit_disk();
+    double defocus_angle = m_aperture;
+    auto defocus_radius = focus_dist * std::tan(glm::radians(defocus_angle / 2.0));
+    auto defocus_disk_u = m_up * defocus_radius;
+    auto defocus_disk_v = m_right * defocus_radius;
+    origin += (r.x * defocus_disk_v) + (r.y * defocus_disk_u);
+  }
 
   Ray ray;
   ray.origin = origin;
