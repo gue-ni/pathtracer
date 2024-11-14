@@ -139,5 +139,9 @@ void Renderer::save_image(const std::filesystem::path& path)
 
   output.write(path);
 
-  std::cout << "Save image to " << path << std::endl;
+  auto now = std::chrono::system_clock::now();
+  std::time_t current_time = std::chrono::system_clock::to_time_t(now);
+
+  std::cout << "[" << std::put_time(std::localtime(&current_time), "%Y-%m-%d %H:%M:%S") << "] Save image to " << path
+            << std::endl;
 }
