@@ -10,6 +10,9 @@
 
 constexpr double pi = 3.14159265359;
 
+// x^2
+constexpr inline double sq(double x) { return x * x; }
+
 template <typename T>
 struct Interval {
   T min, max;
