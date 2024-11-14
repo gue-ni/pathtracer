@@ -24,10 +24,12 @@ jobs:
 
     - name: Render
       run: |
-        pwd
-        ls -la
-        ${{github.workspace}}/build/pt assets/cornell_box/cornell_box.json image.png 32 3 0
-        zip artefact.$(date +%s).zip ./*.png
+        samples=64
+        bounces=7
+        ${{github.workspace}}/build/pt assets/cornell_box/cornell_box.json "github_${samples}_${bounces}.png" $samples $bounces 0
+        echo "$(date)"                       >> metadata.txt
+        echo "$(git rev-parse --short HEAD)" >> metadata.txt
+        zip artefact.$(date +%s).zip ./*.png ./metadata.txt
 
     - name: deploy to server
       uses: appleboy/scp-action@master
