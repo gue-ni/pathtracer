@@ -21,6 +21,8 @@ struct SimpleSphere : public Sphere {
   glm::dvec3 albedo;
   glm::dvec3 emissive;
   std::string texture;
+  double metallic;
+  double roughness;
 };
 
 struct Config {
@@ -49,16 +51,32 @@ static void from_json(const json& j, dvec3& v) { v = dvec3{j["x"], j["y"], j["z"
 
 }  // namespace glm
 
+static bool contains_key(const json& j, const std::string& key) { return j.contains(key); }
+
+template <typename T>
+static T get_or_else(const json& j, const std::string& key, T default_value)
+{
+  if (contains_key(j, key)) {
+    return j[key];
+  } else {
+    return default_value;
+  }
+}
+
 static void from_json(const json& j, SimpleSphere& s)
 {
-  s.center = j["center"];
-  s.radius = j["radius"];
-  s.albedo = j["albedo"];
-  s.emissive = j["emissive"];
-  s.texture = j["texture"];
-  if (j["type"] == "SPECULAR") {
+  s.center = get_or_else(j, "center", glm::dvec3(0.0));
+  s.radius = get_or_else(j, "radius", 1.0);
+  s.albedo = get_or_else(j, "albedo", glm::dvec3(1.0));
+  s.emissive = get_or_else(j, "emissive", glm::dvec3(0.0));
+  s.texture = get_or_else(j, "texture", std::string());
+  s.metallic = get_or_else(j, "metallic", 0.5);
+  s.roughness = get_or_else(j, "roughness", 0.5);
+  auto type = get_or_else(j, "type", std::string("DIFFUSE"));
+
+  if (type == "SPECULAR") {
     s.type = Material::SPECULAR;
-  } else if (j["type"] == "TRANSMISSIVE") {
+  } else if (type == "TRANSMISSIVE") {
     s.type = Material::TRANSMISSIVE;
   } else {
     s.type = Material::DIFFUSE;
@@ -67,20 +85,25 @@ static void from_json(const json& j, SimpleSphere& s)
 
 static void from_json(const json& j, Config& c)
 {
-  c.print_progress = j["print_progress"];
-  c.image_width = j["image_width"];
-  c.image_height = j["image_height"];
+  c.print_progress = get_or_else(j, "print_progress", false);
+  c.image_width = get_or_else(j, "image_width", 640);
+  c.image_height = get_or_else(j, "image_height", 480);
 
-  c.camera_position = j["camera_position"];
-  c.camera_target = j["camera_target"];
-  c.camera_fov = j["camera_fov"];
-  c.camera_aperture = j["camera_aperture"];
-  c.camera_focus_distance = j["camera_focus_distance"];
+  c.camera_position = get_or_else(j, "camera_position", glm::dvec3(0.0, 0.0, 10.0));
+  c.camera_target = get_or_else(j, "camera_target", glm::dvec3(0.0, 0.0, 0.0));
+  c.camera_fov = get_or_else(j, "camera_fov", 45);
+  c.camera_aperture = get_or_else(j, "camera_aperture", 0);
+  c.camera_focus_distance = get_or_else(j, "camera_focus_distance", 0);
 
-  c.models = j["models"].get<std::vector<std::string>>();
-  c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
+  c.environment_texture = get_or_else(j, "environment_texture", std::string());
 
-  if (j.contains("environment_texture")) c.environment_texture = j["environment_texture"];
+  if (contains_key(j, "models")) {
+    c.models = j["models"].get<std::vector<std::string>>();
+  }
+
+  if (contains_key(j, "spheres")) {
+    c.spheres = j["spheres"].get<std::vector<SimpleSphere>>();
+  }
 }
 
 std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Config& config)
@@ -99,7 +122,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
     material->type = s.type;
     material->albedo = s.albedo;
-    material->emittance = s.emissive;
+    material->emission = s.emissive;
+    material->roughness = s.roughness;
+    material->metallic = s.metallic;
 
     if (!s.texture.empty()) {
       material->texture = new Image();  // TODO: this is never deallocated
@@ -210,7 +235,7 @@ int main(int argc, char** argv)
       if (batch > todo) batch = todo;
       renderer.render(batch, config.max_bounce, config.print_progress);
 
-      printf("%d Samples/Pixel\n", renderer.total_samples);
+      printf("%d/%d samples per pixel\n", renderer.total_samples, config.samples_per_pixel);
 
       auto path = result_path.parent_path() / std::filesystem::path("latest.png");
       renderer.save_image(path);

@@ -19,7 +19,7 @@ class Renderer
   ~Renderer();
   void render(int samples, int max_bounce, bool print_progress = false);
   void render_old(int samples, int max_bounce, bool print_progress = false);
-  glm::dvec3 trace_ray(const Ray &ray, int depth);
+  glm::dvec3 trace_ray(const Ray &ray, int depth, int max_depth);
   void save_image(const std::filesystem::path& path);
 
   int total_samples = 0;

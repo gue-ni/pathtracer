@@ -4,8 +4,8 @@
 #include "util.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define DEBUG_NORMAL    0
-#define COSINE_WEIGHTED 1
+#define DEBUG_NORMAL     0
+#define RUSSIAN_ROULETTE 1
 
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
@@ -45,7 +45,7 @@ void Renderer::render_old(int samples, int max_bounce, bool print_progress)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        color += trace_ray(ray, max_bounce);
+        color += trace_ray(ray, 0, max_bounce);
       }
 
       m_buffer[y * m_camera->width() + x] = color * sample_weight;
@@ -69,7 +69,7 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        auto color = trace_ray(ray, max_bounce);
+        auto color = trace_ray(ray, 0, max_bounce);
         result = glm::mix(result, color, 1.0 / double(total_samples + s + 1));
       }
 
@@ -80,28 +80,48 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
   total_samples += samples;
 }
 
-glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth)
+// https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
+static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(0.2126, 0.7152, 0.0722)); }
+
+glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 {
   auto possible_hit = m_scene->find_intersection(ray);
 
   if (!possible_hit.has_value()) {
     return m_scene->background(ray);
-  } else {
-#if DEBUG_NORMAL
-    return normal_as_color(possible_hit.value().normal);
-#endif
   }
 
   Intersection surface = possible_hit.value();
   Material* material = surface.material;
 
-  if (depth <= 0) {
+#if DEBUG_NORMAL
+  return normal_as_color(surface.normal);
+#endif
+
+  if (max_depth <= depth) {
     return glm::vec3(0);
   }
 
+#if RUSSIAN_ROULETTE
+  // russian roulette
+  double rr_weight = 1;
+  int min_depth = 3;
+
+  if (min_depth < depth) {
+    double rr_prob = luma(surface.albedo());
+    if (random_double() >= rr_prob) {
+      return surface.material->emission;
+    } else {
+      rr_weight = 1.0 / rr_prob;
+    }
+  }
+#else
+  double rr_weight = 1;
+#endif
+
   BRDF::Sample sample = BRDF(&surface).sample(ray);
 
-  return material->emittance + trace_ray(sample.ray, depth - 1) * sample.value;
+  return material->emission + trace_ray(sample.ray, depth + 1, max_depth) * rr_weight * sample.value;
 }
 
 void Renderer::save_image(const std::filesystem::path& path)
@@ -119,5 +139,9 @@ void Renderer::save_image(const std::filesystem::path& path)
 
   output.write(path);
 
-  std::cout << "Save image to " << path << std::endl;
+  auto now = std::chrono::system_clock::now();
+  std::time_t current_time = std::chrono::system_clock::to_time_t(now);
+
+  std::cout << "[" << std::put_time(std::localtime(&current_time), "%Y-%m-%d %H:%M:%S") << "] Save image to " << path
+            << std::endl;
 }
