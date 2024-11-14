@@ -21,6 +21,8 @@ struct SimpleSphere : public Sphere {
   glm::dvec3 albedo;
   glm::dvec3 emissive;
   std::string texture;
+  double metallic;
+  double roughness;
 };
 
 struct Config {
@@ -49,6 +51,16 @@ static void from_json(const json& j, dvec3& v) { v = dvec3{j["x"], j["y"], j["z"
 
 }  // namespace glm
 
+template <typename T>
+static T get_or_else(const json& j, const std::string& key, T default_value)
+{
+  if (j.contains(key)) {
+    return j[key];
+  } else {
+    return default_value;
+  }
+}
+
 static void from_json(const json& j, SimpleSphere& s)
 {
   s.center = j["center"];
@@ -63,6 +75,8 @@ static void from_json(const json& j, SimpleSphere& s)
   } else {
     s.type = Material::DIFFUSE;
   }
+  s.metallic = get_or_else(j, "metallic", 0.5);
+  s.roughness = get_or_else(j, "roughness", 0.5);
 }
 
 static void from_json(const json& j, Config& c)
@@ -100,6 +114,8 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     material->type = s.type;
     material->albedo = s.albedo;
     material->emittance = s.emissive;
+    material->roughness = s.roughness;
+    material->metallic = s.metallic;
 
     if (!s.texture.empty()) {
       material->texture = new Image();  // TODO: this is never deallocated

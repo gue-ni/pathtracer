@@ -54,7 +54,8 @@
 				"y": 0,
 				"z": 0
 			},
-			"texture": ""
+			"texture": "",
+			"roughness": 0
 		},
 		{
 			"center": {
