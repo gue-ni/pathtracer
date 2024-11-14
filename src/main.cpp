@@ -113,7 +113,7 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 
     material->type = s.type;
     material->albedo = s.albedo;
-    material->emittance = s.emissive;
+    material->emission = s.emissive;
     material->roughness = s.roughness;
     material->metallic = s.metallic;
 
