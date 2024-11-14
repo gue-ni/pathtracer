@@ -21,17 +21,11 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-      
+
     - name: Render
       run: |
         pwd
         ls -la
         ${{github.workspace}}/build/pt assets/cornell_box/cornell_box.json image.png 32 3 0
         zip artefact.$(date +%s).zip ./*.png
-        
-    - name: Copy artefact to server
-      run: |
-        echo "${{ secrets.KEY }}" > ${{github.workspace}}/tmp-ssh-key
-        scp -P ${{ secrets.PORT }} -i ${{github.workspace}}/tmp-ssh-key ${{github.workspace}}/*.zip ${{ secrets.USER }}@${{ secrets.HOST }}:/var/www/private/files/render-artefacts
-
 

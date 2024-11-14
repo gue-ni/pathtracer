@@ -56,11 +56,7 @@ static bool contains_key(const json& j, const std::string& key) { return j.conta
 template <typename T>
 static T get_or_else(const json& j, const std::string& key, T default_value)
 {
-  if (contains_key(j, key)) {
-    return j[key];
-  } else {
-    return default_value;
-  }
+  return contains_key(j, key) ? j[key] : default_value;
 }
 
 static void from_json(const json& j, SimpleSphere& s)
