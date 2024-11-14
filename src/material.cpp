@@ -158,12 +158,12 @@ BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
 #if 1
   // why is this so slow?
   // this causes much more bounces
-  glm::dvec3 H = vector_from_spherical(theta, phi);
+  glm::dvec3 H = spherical_to_cartesian(theta, phi);
   // glm::dvec3 L = glm::reflect(-V, H);
   glm::dvec3 L = 2.0 * glm::dot(V, H) * H - V;
 
 #else
-  glm::dvec3 L = vector_from_spherical(theta, phi);
+  glm::dvec3 L = spherical_to_cartesian(theta, phi);
   glm::dvec3 H = glm::normalize(V + L);
 #endif
 
@@ -184,7 +184,7 @@ BRDF::Sample BRDF::sample_microfacet(const Ray& incoming)
   // glm::dvec3 value = F * G * weight;
   value = F * weight;
 
-  // L = vector_from_spherical(std::acos(std::sqrt(e1)), 2.0 * pi * e0);
+  // L = spherical_to_cartesian(std::acos(std::sqrt(e1)), 2.0 * pi * e0);
   // value = microfacet_brdf(L, V, glm::dvec3(0,1,0), surface->albedo(), 0, metallic, roughness);
   // value /= (L.y / pi);
 

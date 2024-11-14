@@ -82,7 +82,7 @@ inline double random_double()
 // theta is polar angle
 // phi is azimuth angle (angle around polar axis)
 // https://ameye.dev/notes/sampling-the-hemisphere/
-inline glm::dvec3 vector_from_spherical(double theta, double phi)
+inline glm::dvec3 spherical_to_cartesian(double theta, double phi)
 {
   double x = std::cos(phi) * std::sin(theta);
   double y = std::cos(theta);
@@ -94,7 +94,7 @@ inline glm::dvec3 random_unit_vector()
 {
   double phi = 2.0 * pi * random_double();
   double theta = std::acos(1.0 - 2.0 * random_double());
-  return vector_from_spherical(theta, phi);
+  return spherical_to_cartesian(theta, phi);
 }
 
 inline glm::dvec3 random_in_unit_disk()
@@ -125,7 +125,7 @@ inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
   double r0 = random_double(), r1 = random_double();
   double phi = 2.0 * pi * r0;
   double theta = std::acos(std::sqrt(r1));
-  return local_to_world(normal) * vector_from_spherical(theta, phi);
+  return local_to_world(normal) * spherical_to_cartesian(theta, phi);
 #endif
 }
 
