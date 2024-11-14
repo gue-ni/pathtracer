@@ -37,5 +37,4 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         source: "*.zip"
-        target: "/var/www/files/render-artefacts
-
+        target: "/var/www/files/render-artefacts"
