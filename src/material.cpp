@@ -93,9 +93,9 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
   switch (surface->material->type) {
     case Material::SPECULAR:
 #if 1
-      return sample_specular(incoming);
+      return (surface->material->roughness == 0) ? sample_mirror(incoming) : sample_specular(incoming);
 #else
-      return sample_microfacet(incoming);
+      return (surface->material->roughness == 0) ? sample_mirror(incoming) : sample_microfacet(incoming);
 #endif
     case Material::TRANSMISSIVE:
       return sample_transmissive(incoming);
