@@ -70,7 +70,7 @@ bool Triangle::intersect(const Ray& r, const Interval<double>& ti, double& t) co
 static void barycentric(const glm::dvec3& a, const glm::dvec3& b, const glm::dvec3& c, const glm::dvec3& p, double& u,
                         double& v, double& w)
 {
-  auto v0 = b - a, v1 = c - a, v2 = p - a;
+  glm::dvec3 v0 = b - a, v1 = c - a, v2 = p - a;
   double d00 = glm::dot(v0, v0);
   double d01 = glm::dot(v0, v1);
   double d11 = glm::dot(v1, v1);
@@ -101,14 +101,6 @@ glm::dvec3 Triangle::normal(const glm::dvec3& point_on_triangle) const
   double u, v, w;
   barycentric(v0, v1, v2, point_on_triangle, u, v, w);
   return u * n0 + v * n1 + w * n2;
-}
-
-glm::dvec3 Triangle::vertex(size_t i) const
-{
-  assert(i < 3);
-  if (i == 0) return v0;
-  if (i == 1) return v1;
-  return v2;
 }
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution.html

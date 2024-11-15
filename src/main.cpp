@@ -164,8 +164,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
 int main(int argc, char** argv)
 {
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output> <samples> <bounces> <batch_size>"
+    std::cerr << "Usage: " << argv[0] << " <path to config.json> <output path> <samples> <bounces> <batch_size>"
               << std::endl;
+    return 1;
   }
 
   std::filesystem::path config_path = std::filesystem::path(argv[1]);

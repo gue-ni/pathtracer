@@ -31,12 +31,12 @@ jobs:
         echo "$(git rev-parse --short HEAD)" >> metadata.txt
         zip artefact.$(date +%s).zip ./*.png ./metadata.txt
 
-    - name: deploy to server
+    - name: Copy render artefact to file server
       uses: appleboy/scp-action@master
       with:
-        host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
-        key: ${{ secrets.KEY }}
+        host: ${{ secrets.HOST }}
         port: ${{ secrets.PORT }}
+        key: ${{ secrets.KEY }}
         source: "*.zip"
         target: "/var/www/files/render-artefacts"
