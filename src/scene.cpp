@@ -67,6 +67,7 @@ glm::dvec3 Scene::size() const { return m_bvh->root()->bbox.size(); }
 
 struct Vertex {
   glm::dvec3 pos{};
+  glm::dvec3 normal{};
   glm::dvec2 uv{};
   int material_id;
 };
@@ -179,6 +180,15 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
           vertex.uv = {0, 0};
         }
 
+        if (idx.normal_index >= 0) {
+          tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
+          tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
+          tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+          vertex.normal = {nx, ny, nz};
+        } else {
+          vertex.normal = {0, 0, 0};
+        }
+
         vertex.material_id = material_id;
         vertices.push_back(vertex);
       }
@@ -199,6 +209,9 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     tri.t0 = vertices[i * 3 + 0].uv;
     tri.t1 = vertices[i * 3 + 1].uv;
     tri.t2 = vertices[i * 3 + 2].uv;
+    tri.n0 = vertices[i * 3 + 0].normal;
+    tri.n1 = vertices[i * 3 + 1].normal;
+    tri.n2 = vertices[i * 3 + 2].normal;
 
 #if 1
     if (mtls.empty()) {

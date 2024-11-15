@@ -27,20 +27,6 @@ static double D_GGX(double NoH, double roughness)
   return alpha2 * (1 / pi) / (b * b);
 }
 
-static double pdf_GGX(double theta, double roughness)
-{
-  double alpha = roughness * roughness;
-  double alpha2 = alpha * alpha;
-  double cos_theta = std::cos(theta);
-  // double b = (alpha2 - 1.0) * (cos_theta * cos_theta) + 1.0;
-  // return (alpha2 * cos_theta) / (pi * (b * b));
-
-  double num = (alpha2 * cos_theta);
-  double a = ((alpha2 - 1.0) * (cos_theta * cos_theta) + 1.0);
-  double denom = pi * (a * a);
-  return num / denom;
-}
-
 static double G1_GGX_Schlick(double NoV, double roughness)
 {
   double alpha = roughness * roughness;

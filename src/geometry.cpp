@@ -4,7 +4,6 @@
 #include <optional>
 #include <atomic>
 #include <glm/glm.hpp>
-#include <vector>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/io.hpp>
@@ -15,17 +14,15 @@
 std::atomic<uint64_t> intersection_test_counter = 0;
 #endif
 
-
-  glm::dvec3 Intersection::albedo() const
-  {
-    glm::dvec3 albedo = material->albedo;
-    if (material->texture) {
-      // image textures are generally sRGB, so we need to convert them to linear space
-      return reverse_gamma_correction(material->texture->sample(uv));
-    } else {
-      return material->albedo;
-    }
+glm::dvec3 Intersection::albedo() const
+{
+  if (material->texture) {
+    // image textures are generally sRGB, so we need to convert them to linear space
+    return reverse_gamma_correction(material->texture->sample(uv));
+  } else {
+    return material->albedo;
   }
+}
 
 bool ray_vs_sphere(const Ray& r, const Sphere& s, const Interval<double>& ti, double& t)
 {
@@ -94,10 +91,16 @@ glm::dvec2 Triangle::texcoord(const glm::dvec3& point_on_triangle) const
 
 glm::dvec3 Triangle::normal() const
 {
-  auto v0v1 = v1 - v0;
-  auto v0v2 = v2 - v0;
-  auto normal = glm::cross(v0v1, v0v2);  // N
-  return glm::normalize(normal);
+  glm::dvec3 v0v1 = v1 - v0;
+  glm::dvec3 v0v2 = v2 - v0;
+  return glm::normalize(glm::cross(v0v1, v0v2));
+}
+
+glm::dvec3 Triangle::normal(const glm::dvec3& point_on_triangle) const
+{
+  double u, v, w;
+  barycentric(v0, v1, v2, point_on_triangle, u, v, w);
+  return u * n0 + v * n1 + w * n2;
 }
 
 glm::dvec3 Triangle::vertex(size_t i) const
@@ -197,7 +200,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         Intersection surface;
         surface.t = t;
         surface.point = ray.point_at(t);
-        surface.normal = triangle.normal();
+        surface.normal = triangle.normal(surface.point);
         surface.inside = false;
         surface.material = material;
         if (surface.material->texture) {

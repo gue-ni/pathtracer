@@ -7,6 +7,8 @@
 #define DEBUG_NORMAL     0
 #define RUSSIAN_ROULETTE 1
 
+std::atomic<uint64_t> bounce_counter = 0;
+
 static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
 
 static glm::u8vec3 map_pixel(const glm::dvec3 color)
@@ -85,6 +87,8 @@ static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(
 
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 {
+  bounce_counter++;
+
   auto possible_hit = m_scene->find_intersection(ray);
 
   if (!possible_hit.has_value()) {
