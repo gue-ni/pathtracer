@@ -15,6 +15,7 @@ class Camera
   void look_at(const glm::dvec3& position, const glm::dvec3& target);
   glm::dvec3 position() const { return m_position; }
   glm::dvec3 direction() const { return m_forward; }
+  glm::ivec2 resolution() const { return {m_width, m_height}; }
 
  private:
   const int m_width, m_height;
@@ -22,8 +23,7 @@ class Camera
   glm::dvec3 m_position, m_forward, m_right, m_up;
   double m_fov;
   double m_focus_distance;
-  double m_aperture ;
-
+  double m_aperture;
 
   void compute();
 };

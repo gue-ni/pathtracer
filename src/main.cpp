@@ -220,6 +220,7 @@ int main(int argc, char** argv)
   std::cout << "Max Bounce Depth: " << config.max_bounce << std::endl;
   std::cout << "Camera Position: " << camera->position() << std::endl;
   std::cout << "Camera Direction: " << camera->direction() << std::endl;
+  std::cout << "Camera Resolution: " << camera->resolution() << std::endl;
   std::cout << "Scene Size: " << scene->size() << std::endl;
   std::cout << "Scene Center: " << scene->center() << std::endl;
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <glm/glm.hpp>
 #include <random>
 #include <array>
@@ -56,26 +57,15 @@ inline glm::dvec3 rgb(const RGB& color)
   return rgb(color.x, color.y, color.z);
 }
 
-// https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
-// TODO: handle when the direction if exactly down
-inline glm::dmat3 local_to_world(const glm::dvec3& up_)
+
+
+inline glm::dmat3 local_to_world(const glm::dvec3& up)
 {
-  constexpr glm::dvec3 world_up(0, 1, 0);
-
-  glm::dvec3 up = up_;
-
-  constexpr double epsilon = 0.01;
-  if (glm::all(glm::epsilonEqual(up, world_up, epsilon))) {
-    return glm::mat3(1.0);  // identity
-  }
-
-  if (glm::all(glm::epsilonEqual(up, -world_up, epsilon))) {
-    return glm::dmat3(glm::dvec3(-1, 0, 0), glm::dvec3(0, -1, 0), glm::dvec3(0, 0, 1));
-  }
-
-  glm::dvec3 right = glm::cross(up, world_up);
-  glm::dvec3 forward = glm::cross(-right, up);
-  return glm::dmat3(right, up, forward);
+  glm::vec3 u = glm::normalize(up);
+  glm::vec3 reference = (glm::abs(u.z) < 0.9f) ? glm::vec3(0, 0, 1) : glm::vec3(1, 0, 0);
+  glm::vec3 r = glm::normalize(glm::cross(reference, u));
+  glm::vec3 f = glm::cross(u, r);
+  return glm::mat3(r, u, f);
 }
 
 inline double random_double()
