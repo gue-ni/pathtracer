@@ -57,13 +57,20 @@ inline glm::dvec3 rgb(const RGB& color)
 }
 
 // https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
-inline glm::dmat3 local_to_world(const glm::dvec3& up)
+// TODO: handle when the direction if exactly down
+inline glm::dmat3 local_to_world(const glm::dvec3& up_)
 {
   constexpr glm::dvec3 world_up(0, 1, 0);
 
-  constexpr double epsilon = 0.0001;
+  glm::dvec3 up = up_;
+
+  constexpr double epsilon = 0.01;
   if (glm::all(glm::epsilonEqual(up, world_up, epsilon))) {
     return glm::mat3(1.0);  // identity
+  }
+
+  if (glm::all(glm::epsilonEqual(up, -world_up, epsilon))) {
+    return glm::dmat3(glm::dvec3(-1, 0, 0), glm::dvec3(0, -1, 0), glm::dvec3(0, 0, 1));
   }
 
   glm::dvec3 right = glm::cross(up, world_up);
