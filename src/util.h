@@ -140,3 +140,12 @@ inline glm::dvec3 reverse_gamma_correction(const glm::dvec3 color, double gamma 
 {
   return glm::pow(color, glm::dvec3(gamma));
 }
+
+inline glm::dvec2 equirectangular(const glm::dvec3& v)
+{
+  glm::dvec2 invAtan = glm::dvec2(0.1591, 0.3183);
+  glm::dvec2 uv = glm::dvec2(std::atan2(v.z, v.x), std::asin(v.y));
+  uv *= invAtan;
+  uv += 0.5;
+  return uv;
+}

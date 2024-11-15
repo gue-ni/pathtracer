@@ -84,30 +84,6 @@ glm::dvec3 Image::sample(double u, double v, bool interpolate) const
   }
 }
 
-glm::dvec3 Image::sample_equirectangular(const glm::dvec3& v) const
-{
-#if 0
-  // Calculate longitude and latitude
-  double longitude = std::atan2(direction.x, direction.z);
-  double latitude = std::asin(direction.y);
-
-  // Map to UV coordinates
-  constexpr double pi = 3.141596;
-  double u = (longitude / (2 * pi)) + 0.5;
-  double v = 0.5 - (latitude / pi);
-
-  return sample(u, v);
-#else
-
-  glm::dvec2 invAtan = glm::dvec2(0.1591, 0.3183);
-  glm::dvec2 uv = glm::dvec2(std::atan2(v.z, v.x), std::asin(v.y));
-  uv *= invAtan;
-  uv += 0.5;
-  return sample(uv);
-
-#endif
-}
-
 void Image::free_data()
 {
   if (m_data) {

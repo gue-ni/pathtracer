@@ -28,7 +28,7 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 glm::dvec3 Scene::background(const Ray& r)
 {
   if (m_environment_map) {
-    auto color = m_environment_map->sample_equirectangular(r.direction);
+    auto color = m_environment_map->sample(equirectangular(r.direction));
     return reverse_gamma_correction(color);
   } else {
 #if (BACKGROUND == BACKGROUND_SKY)
