@@ -25,12 +25,14 @@ class Scene
   size_t primitive_count() const { return primitives.size(); }
   glm::dvec3 center() const;
   glm::dvec3 size() const;
-  void set_envmap(Image* envmap) { m_environment_map = envmap; }
+  void set_envmap(Image* envmap) { m_background_texture = envmap; }
+  void set_background_color(const glm::dvec3& color) { m_background_color = color; }
 
  private:
   std::vector<Primitive> primitives;
   std::unique_ptr<BVH> m_bvh;
   size_t material_count = 0;
   std::array<Material, 256> materials;
-  Image* m_environment_map;
+  Image* m_background_texture;
+  glm::dvec3 m_background_color;
 };

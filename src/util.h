@@ -57,8 +57,6 @@ inline glm::dvec3 rgb(const RGB& color)
   return rgb(color.x, color.y, color.z);
 }
 
-
-
 inline glm::dmat3 local_to_world(const glm::dvec3& up)
 {
   glm::vec3 u = glm::normalize(up);
@@ -106,24 +104,18 @@ inline glm::dvec3 random_in_unit_disk()
 
 inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
 {
-  glm::dvec3 unit_vector = random_unit_vector();
-  if (glm::dot(unit_vector, normal) > 0.0) {
-    return unit_vector;
-  } else {
-    return -unit_vector;
-  }
+  double e0 = random_double(), e1 = random_double();
+  double phi = 2.0 * pi * e0;
+  double theta = std::acos(e1);
+  return spherical_to_cartesian(theta, phi);
 }
 
 inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
 {
-#if 0
-  return glm::normalize(normal + random_unit_vector());
-#else
   double r0 = random_double(), r1 = random_double();
   double phi = 2.0 * pi * r0;
   double theta = std::acos(std::sqrt(r1));
   return local_to_world(normal) * spherical_to_cartesian(theta, phi);
-#endif
 }
 
 // convert from linear space to gamma space

@@ -42,7 +42,8 @@ struct Config {
   std::vector<std::string> models;
   std::vector<SimpleSphere> spheres;
 
-  std::string environment_texture;
+  std::string background_texture;
+  glm::dvec3 background_color;
 };
 
 namespace glm
@@ -95,7 +96,8 @@ static void from_json(const json& j, Config& c)
   c.camera_aperture = get_or_else(j, "camera_aperture", 0);
   c.camera_focus_distance = get_or_else(j, "camera_focus_distance", 0);
 
-  c.environment_texture = get_or_else(j, "environment_texture", std::string());
+  c.background_texture = get_or_else(j, "background_texture", std::string());
+  c.background_color = get_or_else(j, "background_color", glm::dvec3(-1.0));
 
   if (contains_key(j, "models")) {
     c.models = j["models"].get<std::vector<std::string>>();
@@ -138,16 +140,19 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
     scene->add_primitive(p);
   }
 
-  if (!config.environment_texture.empty()) {
+  if (!config.background_texture.empty()) {
     Image* image = new Image();
-    if (image->load(config.environment_texture)) {
-      std::cout << "Loaded environment texture " << config.environment_texture << std::endl;
+    if (image->load(config.background_texture)) {
+      std::cout << "Loaded environment texture " << config.background_texture << std::endl;
       scene->set_envmap(image);
     } else {
-      std::cerr << "Failed to load environment texture " << config.environment_texture << std::endl;
+      std::cerr << "Failed to load environment texture " << config.background_texture << std::endl;
       exit(1);
     }
+  } else {
+    scene->set_background_color(config.background_color);
   }
+
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov,
                                                             config.camera_aperture, config.camera_focus_distance);
