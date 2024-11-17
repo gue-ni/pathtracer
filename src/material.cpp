@@ -249,11 +249,32 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   return BRDF::Sample{outgoing, albedo};
 }
 
+static double reflectance(double cosine, double refraction_index)
+{
+  // Use Schlick's approximation for reflectance.
+  auto r0 = (1 - refraction_index) / (1 + refraction_index);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+}
+
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
 {
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
-  Ray outgoing(surface->point, glm::refract(incoming.direction, surface->normal, ri));
+  double cos_theta = glm::min(glm::dot(-incoming.direction, surface->normal), 1.0);
+  double sin_theta = std::sqrt(1.0 - sq(cos_theta));
+
+  Ray outgoing;
+  outgoing.origin = surface->point;
+
+  bool total_internal_refraction = ri * sin_theta > 1.0;
+
+  if (total_internal_refraction || reflectance(cos_theta, ri) > random_double()) {
+    outgoing.direction = glm::reflect(incoming.direction, surface->normal);
+  } else {
+    outgoing.direction = glm::refract(incoming.direction, surface->normal, ri);
+  }
+
   return BRDF::Sample{outgoing, glm::dvec3(1, 1, 1)};
 }
