@@ -1,14 +1,16 @@
 # Pathtracer
 
+This is my toy monte-carlo path tacer.
+
 ## Features
 
--   obj loading
--   textures
--   environment maps
--   dielectrics (refraction and caustics)
--   emissive materials
--   bounding volume hierarchy
--   depth of field
+-   Obj loading
+-   Textures
+-   Environment maps
+-   Dielectrics (refraction and caustics)
+-   Emissive materials
+-   Bounding volume hierarchy
+-   Depth of field
 
 ## Build
 
