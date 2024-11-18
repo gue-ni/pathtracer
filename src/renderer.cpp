@@ -128,6 +128,17 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
   return material->emission + trace_ray(sample.ray, depth + 1, max_depth) * rr_weight * sample.value;
 }
 
+// Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+glm::dvec3 aces_tone_map(glm::dvec3 x)
+{
+  const double a = 2.51;
+  const double b = 0.03;
+  const double c = 2.43;
+  const double d = 0.59;
+  const double e = 0.14;
+  return (x * (a * x + b)) / (x * (c * x + d) + e);
+}
+
 void Renderer::save_image(const std::filesystem::path& path)
 {
   Image output(m_camera->width(), m_camera->height(), 3);
@@ -135,6 +146,7 @@ void Renderer::save_image(const std::filesystem::path& path)
   for (int y = 0; y < m_camera->height(); y++) {
     for (int x = 0; x < m_camera->width(); x++) {
       glm::dvec3 color = m_buffer[y * m_camera->width() + x];
+      color = aces_tone_map(color);
       color = gamma_correction(color);
       glm::u8vec3 pixel = map_pixel(color);
       output.set_pixel(x, y, glm::value_ptr(pixel));

@@ -17,7 +17,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : m_bvh(nullptr), m_environment_map(nullptr) {}
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -25,23 +25,24 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
   return m_bvh->traverse(ray);
 }
 
+static glm::dvec3 sky_gradient(const glm::dvec3& direction)
+{
+  // sky
+  double a = 0.5 * (direction.y + 1.0);
+  return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
+}
+
 glm::dvec3 Scene::background(const Ray& r)
 {
-  if (m_environment_map) {
-    auto color = m_environment_map->sample_equirectangular(r.direction);
+  if (m_background_texture) {
+    auto color = m_background_texture->sample(equirectangular(r.direction));
     return reverse_gamma_correction(color);
   } else {
-#if (BACKGROUND == BACKGROUND_SKY)
-    // sky
-    double a = 0.5 * (r.direction.y + 1.0);
-    return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
-#elif (BACKGROUND == BACKGROUND_WHITE)
-    return glm::dvec3(1);
-#elif (BACKGROUND == BACKGROUND_BLACK)
-    return glm::dvec3(0);
-#else
-    return glm::dvec3(1, 0, 1);
-#endif
+    if (glm::all(glm::greaterThanEqual(m_background_color, glm::dvec3(0.0)))) {
+      return m_background_color;
+    } else {
+      return sky_gradient(r.direction);
+    }
   }
 }
 

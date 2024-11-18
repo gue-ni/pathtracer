@@ -46,5 +46,6 @@ class BRDF
   Sample sample_mirror(const Ray& incoming);
   Sample sample_specular(const Ray& incoming);
   Sample sample_microfacet(const Ray& incoming);
+  Sample sample_microfacet_2(const Ray& incoming);
   Sample sample_transmissive(const Ray& incoming);
 };

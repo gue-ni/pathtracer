@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <glm/glm.hpp>
 #include <random>
 #include <array>
@@ -56,19 +57,13 @@ inline glm::dvec3 rgb(const RGB& color)
   return rgb(color.x, color.y, color.z);
 }
 
-// https://gamedev.stackexchange.com/questions/120352/extract-a-rotation-matrix-given-a-camera-direction-vector-and-a-up-vector-for
 inline glm::dmat3 local_to_world(const glm::dvec3& up)
 {
-  constexpr glm::dvec3 world_up(0, 1, 0);
-
-  constexpr double epsilon = 0.0001;
-  if (glm::all(glm::epsilonEqual(up, world_up, epsilon))) {
-    return glm::mat3(1.0);  // identity
-  }
-
-  glm::dvec3 right = glm::cross(up, world_up);
-  glm::dvec3 forward = glm::cross(-right, up);
-  return glm::dmat3(right, up, forward);
+  glm::vec3 u = glm::normalize(up);
+  glm::vec3 reference = (glm::abs(u.z) < 0.9f) ? glm::vec3(0, 0, 1) : glm::vec3(1, 0, 0);
+  glm::vec3 r = glm::normalize(glm::cross(reference, u));
+  glm::vec3 f = glm::cross(u, r);
+  return glm::mat3(r, u, f);
 }
 
 inline double random_double()
@@ -109,24 +104,18 @@ inline glm::dvec3 random_in_unit_disk()
 
 inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
 {
-  glm::dvec3 unit_vector = random_unit_vector();
-  if (glm::dot(unit_vector, normal) > 0.0) {
-    return unit_vector;
-  } else {
-    return -unit_vector;
-  }
+  double e0 = random_double(), e1 = random_double();
+  double phi = 2.0 * pi * e0;
+  double theta = std::acos(e1);
+  return spherical_to_cartesian(theta, phi);
 }
 
 inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
 {
-#if 0
-  return glm::normalize(normal + random_unit_vector());
-#else
   double r0 = random_double(), r1 = random_double();
   double phi = 2.0 * pi * r0;
   double theta = std::acos(std::sqrt(r1));
   return local_to_world(normal) * spherical_to_cartesian(theta, phi);
-#endif
 }
 
 // convert from linear space to gamma space
@@ -139,4 +128,13 @@ inline glm::dvec3 gamma_correction(const glm::dvec3 color, double gamma = 2.2)
 inline glm::dvec3 reverse_gamma_correction(const glm::dvec3 color, double gamma = 2.2)
 {
   return glm::pow(color, glm::dvec3(gamma));
+}
+
+inline glm::dvec2 equirectangular(const glm::dvec3& v)
+{
+  glm::dvec2 invAtan = glm::dvec2(0.1591, 0.3183);
+  glm::dvec2 uv = glm::dvec2(std::atan2(v.z, v.x), std::asin(v.y));
+  uv *= invAtan;
+  uv += 0.5;
+  return uv;
 }
