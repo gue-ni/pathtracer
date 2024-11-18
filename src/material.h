@@ -30,6 +30,14 @@ struct Material {
   Material(Type t, const glm::dvec3& a, const glm::dvec3& r) : type(t), albedo(a), emission(r) {}
 };
 
+class BxDF 
+{
+public:
+  BxDF(Intersection*);
+  glm::dvec3 sample(const glm::dvec3& wo) const;
+  glm::dvec3 eval(const glm::dvec3& wo, const glm::dvec3& wi) const;
+};
+
 class BRDF
 {
  public:
