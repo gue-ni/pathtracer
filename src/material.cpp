@@ -115,10 +115,9 @@ static double SmithGGXMaskingShadowing(double NoL, double NoV, double a2)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 BxDF::BxDF(Intersection* s) : surface(s) {}
 
-glm::dvec3 BxDF::sample(const glm::dvec3& wo) const 
+glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
   double e0 = random_double(), e1 = random_double();
   double phi = 2.0 * pi * e0;
@@ -126,11 +125,15 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
   return spherical_to_cartesian(theta, phi);
 }
 
-glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const 
+glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
-  double cos_theta = wi.y; 
+#if 0
+  double cos_theta = wi.y;
   double pdf = cos_theta / pi;
-  return (surface->albedo() / pi) * cos_theta / pdf
+  return ((surface->albedo() / pi)) * cos_theta / pdf;
+#else
+  return surface->albedo();
+#endif
 }
 
 BRDF::BRDF(Intersection* s) : surface(s) {}

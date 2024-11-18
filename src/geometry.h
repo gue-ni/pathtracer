@@ -63,6 +63,9 @@ struct Primitive {
   Primitive(const Sphere& s, Material* m) : type(SPHERE), sphere(s), material(m), bbox(AABB(s)) {}
   Primitive(const Triangle& t, Material* m) : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t)) {}
   std::optional<Intersection> intersect(const Ray&) const;
+  bool is_light() const;
+  glm::dvec3 sample_point() const;
+  double area() const;
 };
 
 void print_stats();

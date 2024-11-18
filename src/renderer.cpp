@@ -87,6 +87,10 @@ static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(
 
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 {
+  if (max_depth <= depth) {
+    return glm::vec3(0);
+  }
+
   bounce_counter++;
 
   auto possible_hit = m_scene->find_intersection(ray);
@@ -101,10 +105,6 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 #if DEBUG_NORMAL
   return normal_as_color(surface.normal);
 #endif
-
-  if (max_depth <= depth) {
-    return glm::vec3(0);
-  }
 
 #if RUSSIAN_ROULETTE
   // russian roulette
@@ -123,19 +123,55 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
   double rr_weight = 1;
 #endif
 
-  BRDF::Sample sample = BRDF(&surface).sample(ray);
+  glm::mat3 local2world = local_to_world(surface.normal);
+  glm::mat3 world2local = glm::inverse(local2world);
 
-  return material->emission + trace_ray(sample.ray, depth + 1, max_depth) * rr_weight * sample.value;
+  BxDF brdf(&surface);
+
+  glm::dvec3 wo = world2local * (-ray.direction);
+  glm::dvec3 wi = brdf.sample(wo);
+
+  Ray outgoing(surface.point, local2world * wi);
+
+  glm::dvec3 indirect_light = trace_ray(outgoing, depth + 1, max_depth);
+  glm::dvec3 direct_light = sample_lights(surface.point, brdf);
+
+  return material->emission + indirect_light * rr_weight * brdf.eval(wo, wi);
+}
+
+// https://computergraphics.stackexchange.com/questions/5152/progressive-path-tracing-with-explicit-light-sampling
+// https://computergraphics.stackexchange.com/questions/4288/path-weight-for-direct-light-sampling
+glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf)
+{
+#if 0
+  glm::dvec3 direct_light(0.0);
+
+  Primitive light = m_scene->random_light();
+
+  glm::dvec3 light_pos = light.sample_point();
+
+  glm::dvec3 point_to_light = point - light_pos;
+
+  double distance = glm::length(point_to_light);
+
+  auto possible_intersection = m_scene->find_intersection(Ray(point, point_to_light));
+
+  if (possible_intersection.has_value() && possible_intersection.value().id == light.id) {
+    glm::dvec3 wi, wo;
+    glm::dvec3 emission = light.material->emission;
+    return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
+  } else {
+    return glm::dvec3(0.0);
+  }
+#else
+  return glm::dvec3(0);
+#endif
 }
 
 // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
 glm::dvec3 aces_tone_map(glm::dvec3 x)
 {
-  const double a = 2.51;
-  const double b = 0.03;
-  const double c = 2.43;
-  const double d = 0.59;
-  const double e = 0.14;
+  const double a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
   return (x * (a * x + b)) / (x * (c * x + d) + e);
 }
 

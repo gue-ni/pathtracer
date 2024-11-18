@@ -53,6 +53,20 @@ Material* Scene::add_material(const Material& m)
   return &materials[material_count++];
 }
 
+void Scene::add_primitive(const Primitive& p)
+{
+  if (p.is_light()) {
+    m_lights.push_back(p);
+  }
+  primitives.push_back(p);
+}
+
+Primitive Scene::random_light()
+{
+  size_t index = random_double() * (m_lights.size() - 1);
+  return m_lights[index];
+}
+
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
   for (auto it = begin; it != end; it++) {

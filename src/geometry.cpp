@@ -4,6 +4,7 @@
 #include <optional>
 #include <atomic>
 #include <glm/glm.hpp>
+#include "util.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/io.hpp>
@@ -205,6 +206,32 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     }
     default:
       return std::nullopt;
+  }
+}
+
+bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->emission, glm::dvec3(0.0))); }
+
+glm::dvec3 Primitive::sample_point() const
+{
+  if (type == Type::TRIANGLE) {
+    double u = random_double(), v = random_double(), w = random_double();
+    return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
+  } else {
+    double phi = 2.0 * pi * random_double();
+    double theta = 0;  // TODO
+    return sphere.center + spherical_to_cartesian(theta, phi) * sphere.radius;
+  }
+}
+
+double Primitive::area() const
+{
+  if (type == Type::TRIANGLE) {
+    auto p1 = triangle.v0;
+    auto p2 = triangle.v1;
+    auto p3 = triangle.v2;
+    return 0.5 * std::abs(p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+  } else {
+    return 4.0 * pi * sq(sphere.radius);
   }
 }
 
