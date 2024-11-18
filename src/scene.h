@@ -40,5 +40,5 @@ class Scene
   std::array<Material, 256> materials;
   Image* m_background_texture;
   glm::dvec3 m_background_color;
-  std::vector<Light> m_lights;
+  std::vector<Primitive> m_lights;
 };

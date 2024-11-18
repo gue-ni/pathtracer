@@ -36,6 +36,8 @@ public:
   BxDF(Intersection*);
   glm::dvec3 sample(const glm::dvec3& wo) const;
   glm::dvec3 eval(const glm::dvec3& wo, const glm::dvec3& wi) const;
+private:
+  Intersection* surface;
 };
 
 class BRDF
