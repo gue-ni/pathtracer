@@ -15,7 +15,12 @@ class Scene
  public:
   Scene();
   void compute_bvh();
-  void add_primitive(const Primitive& p) { primitives.push_back(p); }
+  void add_primitive(const Primitive& p) {
+    if (glm::any(glm::greaterThan(p.material->emission, glm::dvec3(0.0)))) {
+      m_lights.push_back(p);
+    } 
+    primitives.push_back(p);
+   }
   void add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end);
   Material* add_material(const Material& m);
   std::vector<Primitive> load_obj(const std::filesystem::path& filename);
@@ -35,4 +40,5 @@ class Scene
   std::array<Material, 256> materials;
   Image* m_background_texture;
   glm::dvec3 m_background_color;
+  std::vector<Light> m_lights;
 };
