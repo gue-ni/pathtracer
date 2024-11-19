@@ -231,10 +231,9 @@ glm::dvec3 Primitive::sample_point() const
 double Primitive::area() const
 {
   if (type == Type::TRIANGLE) {
-    auto p1 = triangle.v0;
-    auto p2 = triangle.v1;
-    auto p3 = triangle.v2;
-    return 0.5 * std::abs(p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+    glm::dvec3 v0v1 = triangle.v1 - triangle.v0;
+    glm::dvec3 v0v2 = triangle.v2 - triangle.v0;
+    return 0.5 * glm::length(glm::cross(v0v1, v0v2));
   } else {
     return 4.0 * pi * sq(sphere.radius);
   }

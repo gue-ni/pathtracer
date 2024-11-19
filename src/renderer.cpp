@@ -176,17 +176,11 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf)
 
       glm::dvec3 emission = light.material->emission;
 
-#if 0
-      double area = light.area();
-#else
-      double area = 1.0;
-#endif
-
       double pdf = 1.0 / double(m_scene->num_lights());
       double LoN = glm::max(glm::dot(light.triangle.normal(), -point_to_light), 0.0);
-      double weight = (area / sq(distance));
+      double weight = (light.area() / sq(distance)) * LoN;
 
-      return (emission * LoN * weight * bsdf.eval(wo, wi)) / pdf;
+      return (emission * weight * bsdf.eval(wo, wi)) / pdf;
     }
   }
 
