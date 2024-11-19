@@ -1,7 +1,7 @@
 $datestamp = get-date -format "dd-MM-yyyy_HHmmss"
 $git_hash = git rev-parse --short HEAD
 
-$pathtracer = "./build/Release/pt.exe"
+$pathtracer = "./out/Release/pt.exe"
 $config = $args[0]
 $samples = $args[1]
 $samples = if ($args.Count -ge 2) { $args[1] } else { 8 }

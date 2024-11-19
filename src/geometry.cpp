@@ -213,21 +213,24 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 
 bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->emission, glm::dvec3(0.0))); }
 
+// get random point on primitive
 glm::dvec3 Primitive::sample_point() const
 {
+  double r1 = random_double(), r2 = random_double();
   if (type == Type::TRIANGLE) {
-    double r1 = random_double(), r2 = random_double();
     double u = std::sqrt(r1);
     double v = (1.0 - std::sqrt(r1)) * r2;
     double w = 1.0 - u - v;
     return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
   } else {
-    double phi = 2.0 * pi * random_double();
-    double theta = 0;  // TODO
+    double phi = 2.0 * pi * r1;
+    //double theta = std::acos(1.0 - 2.0 * pi);
+    double theta = 0;
     return sphere.center + spherical_to_cartesian(theta, phi) * sphere.radius;
   }
 }
 
+// get area of primitive
 double Primitive::area() const
 {
   if (type == Type::TRIANGLE) {
