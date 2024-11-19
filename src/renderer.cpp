@@ -135,17 +135,10 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   Ray outgoing(surface.point, local2world * wi);
 
-  glm::dvec3 radiance(0.0);
+  glm::dvec3 direct = sample_lights(surface.point, brdf, ray.direction);
+  glm::dvec3 indirect = trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wo, wi);
 
-  if (depth == 0) {
-    radiance += material->emission;
-  }
-
-  glm::dvec3 indirect_light = trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wo, wi);
-
-  glm::dvec3 direct_light = sample_lights(surface.point, brdf, ray.direction);
-
-  return radiance + direct_light + indirect_light * rr_weight;
+  return (depth == 0 ? material->emission : glm::dvec3(0.0)) + direct + indirect * rr_weight;
 }
 
 // https://computergraphics.stackexchange.com/questions/5152/progressive-path-tracing-with-explicit-light-sampling
@@ -156,7 +149,7 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
     return glm::dvec3(0.0);
   }
 
-  Primitive light = m_scene->random_light();
+  Primitive light = m_scene->light_count();
 
   glm::dvec3 point_to_light = light.sample_point() - point;
   double distance = glm::length(point_to_light);
@@ -171,7 +164,7 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
     glm::mat3 world2local = glm::inverse(local2world);
 
     glm::dvec3 wo = world2local * (-incoming);
-    glm::dvec3 wi = world2local * (point_to_light);
+    glm::dvec3 wi = world2local * point_to_light;
 
     glm::dvec3 emission = light.material->emission;
 

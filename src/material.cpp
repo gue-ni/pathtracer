@@ -127,7 +127,7 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 
 glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
-#if 0
+#if 1
   double cos_theta = wi.y;
   double pdf = cos_theta / pi;
   return ((surface->albedo() / pi)) * cos_theta / pdf;

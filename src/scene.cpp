@@ -17,7 +17,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), count(0U) {}
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -27,7 +27,6 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 
 static glm::dvec3 sky_gradient(const glm::dvec3& direction)
 {
-  // sky
   double a = 0.5 * (direction.y + 1.0);
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 }
@@ -48,9 +47,9 @@ glm::dvec3 Scene::background(const Ray& r)
 
 Material* Scene::add_material(const Material& m)
 {
-  assert(material_count < materials.size());
-  materials[material_count] = m;
-  return &materials[material_count++];
+  assert(m_material_count < m_materials.size());
+  m_materials[m_material_count] = m;
+  return &m_materials[m_material_count++];
 }
 
 void Scene::add_primitive(const Primitive& p)
@@ -58,10 +57,10 @@ void Scene::add_primitive(const Primitive& p)
   if (p.is_light()) {
     m_lights.push_back(p);
   }
-  primitives.push_back(p);
+  m_primitives.push_back(p);
 }
 
-Primitive Scene::random_light()
+Primitive Scene::light_count()
 {
   size_t random_index = random_double() * (m_lights.size() - 1);
   return m_lights[random_index];
@@ -70,12 +69,12 @@ Primitive Scene::random_light()
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
   for (auto it = begin; it != end; it++) {
-    it->id = count++;
+    it->id = m_count++;
     add_primitive(*it);
   }
 }
 
-void Scene::compute_bvh() { m_bvh = std::make_unique<BVH>(primitives); }
+void Scene::compute_bvh() { m_bvh = std::make_unique<BVH>(m_primitives); }
 
 glm::dvec3 Scene::center() const { return m_bvh->root()->bbox.center(); }
 
@@ -117,7 +116,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
   std::cout << __FUNCTION__ << " Shapes: " << shapes.size() << std::endl;
   std::cout << __FUNCTION__ << " Materials: " << mtls.size() << std::endl;
 
-  auto offset = material_count;
+  auto offset = m_material_count;
 
   for (const tinyobj::material_t& m : mtls) {
     Material material;
@@ -234,7 +233,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       triangles.push_back(Primitive(tri, default_material));
     } else {
       int id = offset + vertices[i * 3].material_id;
-      Material* m = &this->materials[id];
+      Material* m = &m_materials[id];
       triangles.push_back(Primitive(tri, m));
     }
 #else
