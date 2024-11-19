@@ -161,10 +161,7 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf)
 
   Primitive light = m_scene->random_light();
 
-  // TODO
-  glm::dvec3 light_pos = light.sample_point();
-
-  glm::dvec3 point_to_light = light_pos - point;
+  glm::dvec3 point_to_light = light.sample_point() - point;
 
   double distance = glm::length(point_to_light);
 
@@ -175,34 +172,25 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf)
   if (record.has_value()) {
     Intersection surface = record.value();
     if (surface.id == light.id) {
-      glm::dvec3 wi, wo;
-
+      glm::dvec3 wi, wo;  // TODO
 
       glm::dvec3 emission = light.material->emission;
 
+#if 0
       double area = light.area();
+#else
+      double area = 1.0;
+#endif
 
       double pdf = 1.0 / double(m_scene->num_lights());
-      double LoN = glm::dot(light.triangle.normal(), -point_to_light);
-      double weight = (1.0 / sq(distance));
+      double LoN = glm::max(glm::dot(light.triangle.normal(), -point_to_light), 0.0);
+      double weight = (area / sq(distance));
 
-      // return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
-
-      return (emission * LoN * weight) / pdf;
+      return (emission * LoN * weight * bsdf.eval(wo, wi)) / pdf;
     }
-
-    return glm::dvec3(0);
-  } else {
-    return glm::dvec3(0);
   }
 
-  // if (possible_intersection.has_value() && possible_intersection.value().id == light.id) {
-  //   glm::dvec3 wi, wo;
-  //   glm::dvec3 emission = light.material->emission;
-  //   return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
-  // } else {
-  //   return glm::dvec3(0.0);
-  // }
+  return glm::dvec3(0);
 
 #else
   return glm::dvec3(0);
