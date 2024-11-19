@@ -14,7 +14,7 @@
 		"z": 0
 	},
 	"camera_fov": 15.0,
-	"models": ["assets/cornell_box_2/cornell_box.obj"],
+	"models": ["assets/cornell_box/cornell_box.obj"],
 	"background_color": {
 		"x": 0,
 		"y": 0,
