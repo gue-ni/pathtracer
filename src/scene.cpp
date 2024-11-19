@@ -17,7 +17,7 @@
 #define BACKGROUND_BLACK 2
 #define BACKGROUND       BACKGROUND_SKY
 
-Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr) {}
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), count(0U) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -63,13 +63,14 @@ void Scene::add_primitive(const Primitive& p)
 
 Primitive Scene::random_light()
 {
-  size_t index = random_double() * (m_lights.size() - 1);
-  return m_lights[index];
+  size_t random_index = random_double() * (m_lights.size() - 1);
+  return m_lights[random_index];
 }
 
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
   for (auto it = begin; it != end; it++) {
+    it->id = count++;
     add_primitive(*it);
   }
 }

@@ -9,6 +9,7 @@
 #include <vector>
 #include <array>
 #include <atomic>
+#include <cstdint>
 
 class Scene
 {
@@ -31,6 +32,7 @@ class Scene
   int num_lights() const { return m_lights.size(); }
 
  private:
+  uint32_t count;
   std::vector<Primitive> primitives;
   std::vector<Primitive> m_lights;
   std::unique_ptr<BVH> m_bvh;

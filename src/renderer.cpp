@@ -22,8 +22,10 @@ Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(sce
 {
   m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
 
-  for (int i = 0; i < m_camera->width() * m_camera->height(); i++) {
-    m_buffer[i] = glm::dvec3(0.0);
+  for (int y = 0; y < m_camera->height(); y++) {
+    for (int x = 0; x < m_camera->width(); x++) {
+      m_buffer[y * m_camera->width() + x] = glm::dvec3(0.0);
+    }
   }
 }
 
@@ -133,36 +135,75 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   Ray outgoing(surface.point, local2world * wi);
 
-  glm::dvec3 indirect_light = trace_ray(outgoing, depth + 1, max_depth);
-  glm::dvec3 direct_light = sample_lights(surface.point, brdf);
+  glm::dvec3 radiance(0.0);
 
-  return material->emission + indirect_light * rr_weight * brdf.eval(wo, wi);
+  if (depth == 0) {
+    radiance += material->emission;
+  }
+
+  glm::dvec3 indirect_light = trace_ray(outgoing, depth + 1, max_depth);
+
+  glm::dvec3 direct_light(0.0);
+
+  if (0 < m_scene->num_lights()) {
+    direct_light = sample_lights(surface.point, brdf);
+  }
+
+  return radiance + direct_light + indirect_light * rr_weight * brdf.eval(wo, wi);
 }
 
 // https://computergraphics.stackexchange.com/questions/5152/progressive-path-tracing-with-explicit-light-sampling
 // https://computergraphics.stackexchange.com/questions/4288/path-weight-for-direct-light-sampling
 glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf)
 {
-#if 0
+#if 1
   glm::dvec3 direct_light(0.0);
 
   Primitive light = m_scene->random_light();
 
+  // TODO
   glm::dvec3 light_pos = light.sample_point();
 
-  glm::dvec3 point_to_light = point - light_pos;
+  glm::dvec3 point_to_light = light_pos - point;
 
   double distance = glm::length(point_to_light);
 
-  auto possible_intersection = m_scene->find_intersection(Ray(point, point_to_light));
+  point_to_light /= distance;
 
-  if (possible_intersection.has_value() && possible_intersection.value().id == light.id) {
-    glm::dvec3 wi, wo;
-    glm::dvec3 emission = light.material->emission;
-    return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
+  auto record = m_scene->find_intersection(Ray(point, point_to_light));
+
+  if (record.has_value()) {
+    Intersection surface = record.value();
+    if (surface.id == light.id) {
+      glm::dvec3 wi, wo;
+
+
+      glm::dvec3 emission = light.material->emission;
+
+      double area = light.area();
+
+      double pdf = 1.0 / double(m_scene->num_lights());
+      double LoN = glm::dot(light.triangle.normal(), -point_to_light);
+      double weight = (1.0 / sq(distance));
+
+      // return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
+
+      return (emission * LoN * weight) / pdf;
+    }
+
+    return glm::dvec3(0);
   } else {
-    return glm::dvec3(0.0);
+    return glm::dvec3(0);
   }
+
+  // if (possible_intersection.has_value() && possible_intersection.value().id == light.id) {
+  //   glm::dvec3 wi, wo;
+  //   glm::dvec3 emission = light.material->emission;
+  //   return (emission * bsdf.eval(wo, wi)) / (1.0 / double(m_scene->num_lights()));
+  // } else {
+  //   return glm::dvec3(0.0);
+  // }
+
 #else
   return glm::dvec3(0);
 #endif

@@ -12,6 +12,7 @@
 #include <vector>
 
 struct Intersection {
+  uint32_t id;
   double t;
   glm::dvec3 point;
   glm::dvec3 normal;
@@ -59,6 +60,7 @@ struct Primitive {
   };
   Material* material;
   AABB bbox;
+  uint32_t id;
 
   Primitive(const Sphere& s, Material* m) : type(SPHERE), sphere(s), material(m), bbox(AABB(s)) {}
   Primitive(const Triangle& t, Material* m) : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t)) {}

@@ -167,6 +167,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case SPHERE: {
       if (sphere.intersect(ray, ti, t)) {
         Intersection surface;
+        surface.id = id;
         surface.t = t;
         surface.point = ray.point_at(t);
         glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
@@ -191,6 +192,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case TRIANGLE: {
       if (triangle.intersect(ray, ti, t)) {
         Intersection surface;
+        surface.id = id;
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal(surface.point);
@@ -214,7 +216,10 @@ bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->em
 glm::dvec3 Primitive::sample_point() const
 {
   if (type == Type::TRIANGLE) {
-    double u = random_double(), v = random_double(), w = random_double();
+    double r1 = random_double(), r2 = random_double();
+    double u = std::sqrt(r1);
+    double v = (1.0 - std::sqrt(r1)) * r2;
+    double w = 1.0 - u - v;
     return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
   } else {
     double phi = 2.0 * pi * random_double();
