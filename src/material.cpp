@@ -129,7 +129,7 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return sample_specular(wo);
+      return sample_mirror(wo);
     case Material::TRANSMISSIVE:
       return sample_dielectric(wo);
     default:
@@ -141,7 +141,7 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return eval_specular(wo, wi);
+      return eval_mirror(wo, wi);
     case Material::TRANSMISSIVE:
       return eval_dielectric(wo, wi);
     default:
@@ -159,7 +159,7 @@ glm::dvec3 BxDF::sample_diffuse(const glm::dvec3& wo) const
 
 glm::dvec3 BxDF::eval_diffuse(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
-#if 1
+#if 0
   double cos_theta = wi.y;
   double pdf = cos_theta / pi;
   return ((surface->albedo() / pi)) * cos_theta / pdf;
@@ -175,6 +175,14 @@ glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
 }
 
 glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+
+glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { 
+  return glm::reflect(-wo, glm::dvec3(0, 1, 0));
+}
+
+glm::dvec3 BxDF::eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const { 
+  return surface->albedo();
+}
 
 glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& wo) const
 {

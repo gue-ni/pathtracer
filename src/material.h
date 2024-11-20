@@ -13,6 +13,7 @@ struct Material {
     DIFFUSE = 1 << 0,
     SPECULAR = 1 << 1,
     TRANSMISSIVE = 1 << 2,
+    MIRROR = 1 << 3
   };
 
   Type type = DIFFUSE;
@@ -45,6 +46,9 @@ class BxDF
 
   glm::dvec3 sample_specular(const glm::dvec3& wo) const;
   glm::dvec3 eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const;
+
+  glm::dvec3 sample_mirror(const glm::dvec3& wo) const;
+  glm::dvec3 eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const;
 
   glm::dvec3 sample_dielectric(const glm::dvec3& wo) const;
   glm::dvec3 eval_dielectric(const glm::dvec3& wo, const glm::dvec3& wi) const;

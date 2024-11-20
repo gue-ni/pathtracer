@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #define PT_DEBUG_NORMAL          0
-#define PT_RUSSIAN_ROULETTE      0
+#define PT_RUSSIAN_ROULETTE      1
 #define PT_DIRECT_LIGHT_SAMPLING 1
 
 std::atomic<uint64_t> bounce_counter = 0;
