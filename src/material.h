@@ -10,9 +10,9 @@ struct Intersection;
 
 struct Material {
   enum Type : uint8_t {
-    DIFFUSE,
-    SPECULAR,
-    TRANSMISSIVE,
+    DIFFUSE = 1 << 0,
+    SPECULAR = 1 << 1,
+    TRANSMISSIVE = 1 << 2,
   };
 
   Type type = DIFFUSE;
