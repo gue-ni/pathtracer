@@ -22,12 +22,12 @@
 	},
 	"spheres": [
 		{
-			"center": { "x": 3, "y": 1.5, "z": 3 },
+			"center": { "x": 3, "y": 1.5, "z": 2.5 },
 			"radius": 1.5,
 			"type": "TRANSMISSIVE"
 		},
 		{
-			"center": { "x": -3, "y": 1.5, "z": -3 },
+			"center": { "x": -3, "y": 1.5, "z": -2.5 },
 			"radius": 1.5,
 			"type": "SPECULAR",
 			"roughness": 0.0
