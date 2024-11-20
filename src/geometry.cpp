@@ -218,8 +218,9 @@ glm::dvec3 Primitive::sample_point() const
 {
   double r1 = random_double(), r2 = random_double();
   if (type == Type::TRIANGLE) {
-    double u = std::sqrt(r1);
-    double v = (1.0 - std::sqrt(r1)) * r2;
+    double su0 = std::sqrt(r1);
+    double u = 1.0 - su0;
+    double v = r2 * su0;
     double w = 1.0 - u - v;
     return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
   } else {

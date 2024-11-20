@@ -4,8 +4,9 @@
 #include "util.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define DEBUG_NORMAL     0
-#define RUSSIAN_ROULETTE 1
+#define PT_DEBUG_NORMAL          0
+#define PT_RUSSIAN_ROULETTE      0
+#define PT_DIRECT_LIGHT_SAMPLING 1
 
 std::atomic<uint64_t> bounce_counter = 0;
 
@@ -104,11 +105,11 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
   Intersection surface = possible_hit.value();
   Material* material = surface.material;
 
-#if DEBUG_NORMAL
+#if PT_DEBUG_NORMAL
   return normal_as_color(surface.normal);
 #endif
 
-#if RUSSIAN_ROULETTE
+#if PT_RUSSIAN_ROULETTE
   // russian roulette
   double rr_weight = 1;
   int min_depth = 3;
@@ -135,15 +136,20 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   glm::dvec3 radiance(0.0);
 
-  bool perfectly_specular = material->type == Material::TRANSMISSIVE;
+  bool perfectly_specular = material->type == Material::TRANSMISSIVE || (material->type == Material::SPECULAR);
 
-  if (depth == 0 || perfectly_specular) {
+#if PT_DIRECT_LIGHT_SAMPLING
+  if (depth == 0 || perfectly_specular)
+#endif
+  {
     radiance += material->emission;
   }
 
+#if PT_DIRECT_LIGHT_SAMPLING
   if (!perfectly_specular) {
     radiance += sample_lights(surface.point, brdf, ray.direction);
   }
+#endif
 
   Ray outgoing(surface.point, local2world * wi);
   radiance += trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wo, wi);
@@ -155,36 +161,48 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 // https://computergraphics.stackexchange.com/questions/4288/path-weight-for-direct-light-sampling
 glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, const glm::dvec3& incoming)
 {
-  if (m_scene->num_lights() == 0) {
+  if (m_scene->light_count() == 0) {
     return glm::dvec3(0.0);
   }
 
-  Primitive light = m_scene->light_count();
+  Primitive light = m_scene->random_light();
+
+  glm::dvec3 result(0);
 
   glm::dvec3 point_to_light = light.sample_point() - point;
   double distance = glm::length(point_to_light);
-  point_to_light /= distance;
+  point_to_light = glm::normalize(point_to_light);
 
   auto record = m_scene->find_intersection(Ray(point, point_to_light));
 
   if (record.has_value() && record.value().id == light.id) {
     Intersection surface = record.value();
 
-    glm::mat3 local2world = local_to_world(surface.normal);
+    glm::dvec3 normal = surface.normal;
+
+    glm::mat3 local2world = local_to_world(normal);
     glm::mat3 world2local = glm::inverse(local2world);
 
     glm::dvec3 wo = world2local * (-incoming);
     glm::dvec3 wi = world2local * point_to_light;
 
+
+    double cos_theta = glm::max(glm::dot(-incoming, point_to_light), 0.0);
+
+    double area = light.area();
+    double falloff = 1.0 / sq(distance);
+    double light_cos_theta = glm::max(glm::dot(normal, -point_to_light), 0.0);
+
+    double weight =  falloff * light_cos_theta;
+
+    double light_pdf = 1.0 / double(m_scene->light_count());
+
     glm::dvec3 emission = light.material->emission;
 
-    double pdf = 1.0 / double(m_scene->num_lights());
-    double weight = (light.area() / sq(distance)) * glm::max(glm::dot(surface.normal, -point_to_light), 0.0);
-
-    return (emission * weight * bsdf.eval(wo, wi)) / pdf;
+    result += (emission * weight * bsdf.eval(wo, wi)) / light_pdf;
   }
 
-  return glm::dvec3(0);
+  return result;
 }
 
 // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"

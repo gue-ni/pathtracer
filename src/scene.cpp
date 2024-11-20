@@ -60,9 +60,12 @@ void Scene::add_primitive(const Primitive& p)
   m_primitives.push_back(p);
 }
 
-Primitive Scene::light_count()
+Primitive Scene::random_light()
 {
-  size_t random_index = random_double() * (m_lights.size() - 1);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> distr(0, int(m_lights.size() - 1));
+  int random_index = distr(gen);
   return m_lights[random_index];
 }
 

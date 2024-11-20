@@ -27,8 +27,9 @@ class Scene
   glm::dvec3 size() const;
   void set_envmap(Image* envmap) { m_background_texture = envmap; }
   void set_background_color(const glm::dvec3& color) { m_background_color = color; }
-  int num_lights() const { return m_lights.size(); }
-  Primitive light_count();
+  int light_count() const { return m_lights.size(); }
+  Primitive random_light();
+  std::vector<Primitive> lights() { return m_lights; }
 
  private:
   uint32_t m_count;
