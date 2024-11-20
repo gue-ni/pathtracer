@@ -135,11 +135,13 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   glm::dvec3 radiance(0.0);
 
-  if (depth == 0) {
+  bool perfectly_specular = material->type == Material::TRANSMISSIVE;
+
+  if (depth == 0 || perfectly_specular) {
     radiance += material->emission;
   }
 
-  if (material->type != Material::TRANSMISSIVE) {
+  if (!perfectly_specular) {
     radiance += sample_lights(surface.point, brdf, ray.direction);
   }
 
