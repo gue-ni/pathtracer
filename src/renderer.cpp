@@ -35,29 +35,6 @@ Renderer::~Renderer()
   if (m_buffer != nullptr) delete[] m_buffer;
 }
 
-void Renderer::render_old(int samples, int max_bounce, bool print_progress)
-{
-  double sample_weight = 1.0 / double(samples);
-
-#pragma omp parallel for schedule(dynamic, 1)
-  for (int y = 0; y < m_camera->height(); y++) {
-    if (print_progress) {
-      printf("Progress: %.2f%%\n", (double(y) / double(m_camera->height())) * 100.0);
-    }
-
-    for (int x = 0; x < m_camera->width(); x++) {
-      glm::dvec3 color(0.0);
-
-      for (int s = 0; s < samples; s++) {
-        Ray ray = m_camera->get_ray(x, y);
-        color += trace_ray(ray, 0, max_bounce);
-      }
-
-      m_buffer[y * m_camera->width() + x] = color * sample_weight;
-    }
-  }
-}
-
 void Renderer::render(int samples, int max_bounce, bool print_progress)
 {
   double sample_weight = 1.0 / double(samples);

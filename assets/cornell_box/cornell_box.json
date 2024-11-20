@@ -1,12 +1,12 @@
 {
 	"image_width": 500,
 	"image_height": 500,
-	"camera_aperture": 0,
-	"camera_focus_distance": 8,
+	"camera_aperture": 0.5,
+	"camera_focus_distance": 24,
 	"camera_position": {
 		"x": 0,
 		"y": 0,
-		"z": 25
+		"z": 24
 	},
 	"camera_target": {
 		"x": 0,
