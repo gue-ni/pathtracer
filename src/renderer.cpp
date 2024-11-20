@@ -113,7 +113,8 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   glm::dvec3 radiance(0.0);
 
-  bool perfectly_specular = material->type == Material::TRANSMISSIVE || (material->type == Material::SPECULAR);
+  bool perfectly_specular =
+      material->type & Material::TRANSMISSIVE || (material->type & Material::SPECULAR && material->roughness < 0.01);
 
 #if PT_DIRECT_LIGHT_SAMPLING
   if (depth == 0 || perfectly_specular)
@@ -163,14 +164,13 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
     glm::dvec3 wo = world2local * (-incoming);
     glm::dvec3 wi = world2local * point_to_light;
 
-
     double cos_theta = glm::max(glm::dot(-incoming, point_to_light), 0.0);
 
     double area = light.area();
     double falloff = 1.0 / sq(distance);
     double light_cos_theta = glm::max(glm::dot(normal, -point_to_light), 0.0);
 
-    double weight =  falloff * light_cos_theta;
+    double weight = area * falloff * light_cos_theta;
 
     double light_pdf = 1.0 / double(m_scene->light_count());
 

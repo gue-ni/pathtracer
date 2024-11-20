@@ -129,7 +129,7 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return sample_mirror(wo);
+      return sample_specular(wo);
     case Material::TRANSMISSIVE:
       return sample_dielectric(wo);
     default:
@@ -141,7 +141,7 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return eval_mirror(wo, wi);
+      return eval_specular(wo, wi);
     case Material::TRANSMISSIVE:
       return eval_dielectric(wo, wi);
     default:
