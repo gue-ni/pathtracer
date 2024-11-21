@@ -34,6 +34,18 @@
 		},
 		{
 			"hidden": true,
+			"center": { "x": -3, "y": 1.0, "z": 2.5 },
+			"radius": 1,
+			"type": "DIFFUSE",
+			"roughness": 0.0,
+			"emissive": {
+				"x": 4,
+				"y": 0,
+				"z": 4
+			}
+		},
+		{
+			"hidden": true,
 			"center": { "x": 0, "y": 8, "z": 0 },
 			"radius": 1.5,
 			"type": "DIFFUSE",
