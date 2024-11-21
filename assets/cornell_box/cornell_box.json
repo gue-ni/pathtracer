@@ -31,6 +31,18 @@
 			"radius": 1.5,
 			"type": "SPECULAR",
 			"roughness": 0.0
+		},
+		{
+			"hidden": true,
+			"center": { "x": 0, "y": 8, "z": 0 },
+			"radius": 1.5,
+			"type": "DIFFUSE",
+			"roughness": 0.0,
+			"emissive": {
+				"x": 2,
+				"y": 2,
+				"z": 2
+			}
 		}
 	]
 }
