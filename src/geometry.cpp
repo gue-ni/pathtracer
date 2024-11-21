@@ -214,32 +214,33 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->emission, glm::dvec3(0.0))); }
 
 // get random point on primitive
-glm::dvec3 Primitive::sample_point() const
+glm::dvec3 Primitive::sample_point(const glm::dvec3 &point) const
 {
   double r1 = random_double(), r2 = random_double();
   if (type == Type::TRIANGLE) {
-    double su0 = std::sqrt(r1);
-    double u = 1.0 - su0;
-    double v = r2 * su0;
+    double t = std::sqrt(r1);
+    double u = 1.0 - t;
+    double v = r2 * t;
     double w = 1.0 - u - v;
     return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
   } else {
-    double phi = 2.0 * pi * r1;
-    //double theta = std::acos(1.0 - 2.0 * pi);
-    double theta = 0;
-    return sphere.center + spherical_to_cartesian(theta, phi) * sphere.radius;
+    auto normal = glm::normalize(point - sphere.center);
+    return sphere.center + (random_on_hemisphere(normal) * sphere.radius);
   }
 }
 
 // get area of primitive
-double Primitive::area() const
+double Primitive::sample_area() const
 {
   if (type == Type::TRIANGLE) {
     glm::dvec3 v0v1 = triangle.v1 - triangle.v0;
     glm::dvec3 v0v2 = triangle.v2 - triangle.v0;
+    double a = glm::length(v0v1); // TODO: remove
+    double b = glm::length(v0v2); // TODO: remove
     return 0.5 * glm::length(glm::cross(v0v1, v0v2));
   } else {
-    return 4.0 * pi * sq(sphere.radius);
+    // we actually sample only the hemisphere that is towards us
+    return (4.0 * pi * sq(sphere.radius)) / 2.0;
   }
 }
 

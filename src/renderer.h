@@ -28,5 +28,5 @@ class Renderer
   Scene *m_scene;
 
   glm::dvec3 trace_ray(const Ray &ray, int depth, int max_depth);
-  glm::dvec3 sample_lights(const glm::dvec3 &point, const BxDF &bsdf, const glm::dvec3 &incoming);
+  glm::dvec3 sample_lights(const glm::dvec3 &point, const BxDF &bsdf, const glm::dvec3 &incoming, uint32_t id);
 };

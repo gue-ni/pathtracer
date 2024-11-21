@@ -4,9 +4,10 @@
 #include "util.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define PT_DEBUG_NORMAL          0
-#define PT_RUSSIAN_ROULETTE      1
-#define PT_DIRECT_LIGHT_SAMPLING 1
+#define PT_DEBUG_NORMAL            0
+#define PT_RUSSIAN_ROULETTE        1
+#define PT_DIRECT_LIGHT_SAMPLING   1
+#define PT_INDIRECT_LIGHT_SAMPLING 1
 
 std::atomic<uint64_t> bounce_counter = 0;
 
@@ -125,19 +126,21 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
 #if PT_DIRECT_LIGHT_SAMPLING
   if (!perfectly_specular) {
-    radiance += sample_lights(surface.point, brdf, ray.direction);
+    radiance += sample_lights(surface.point, brdf, ray.direction, surface.id);
   }
 #endif
 
+#if PT_INDIRECT_LIGHT_SAMPLING
   Ray outgoing(surface.point, local2world * wi);
-  radiance += trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wo, wi);
+  radiance += trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wi, wo);
+#endif
 
   return radiance * rr_weight;
 }
 
 // https://computergraphics.stackexchange.com/questions/5152/progressive-path-tracing-with-explicit-light-sampling
 // https://computergraphics.stackexchange.com/questions/4288/path-weight-for-direct-light-sampling
-glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, const glm::dvec3& incoming)
+glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, const glm::dvec3& incoming, uint32_t id)
 {
   if (m_scene->light_count() == 0) {
     return glm::dvec3(0.0);
@@ -147,13 +150,13 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
 
   glm::dvec3 result(0);
 
-  glm::dvec3 point_to_light = light.sample_point() - point;
+  glm::dvec3 point_to_light = light.sample_point(point) - point;
   double distance = glm::length(point_to_light);
   point_to_light = glm::normalize(point_to_light);
 
   auto record = m_scene->find_intersection(Ray(point, point_to_light));
 
-  if (record.has_value() && record.value().id == light.id) {
+  if (record.has_value() && record.value().id == light.id && id != light.id) {
     Intersection surface = record.value();
 
     glm::dvec3 normal = surface.normal;
@@ -164,9 +167,7 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
     glm::dvec3 wo = world2local * (-incoming);
     glm::dvec3 wi = world2local * point_to_light;
 
-    double cos_theta = glm::max(glm::dot(-incoming, point_to_light), 0.0);
-
-    double area = light.area();
+    double area = light.sample_area();
     double falloff = 1.0 / sq(distance);
     double light_cos_theta = glm::max(glm::dot(normal, -point_to_light), 0.0);
 

@@ -110,6 +110,14 @@ inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
   return spherical_to_cartesian(theta, phi);
 }
 
+inline glm::dvec3 random_on_hemisphere(const glm::dvec3& normal) {
+    auto on_unit_sphere = random_unit_vector();
+    if (glm::dot(on_unit_sphere, normal) > 0.0) 
+        return on_unit_sphere;
+    else
+        return -on_unit_sphere;
+}
+
 inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
 {
   double r0 = random_double(), r1 = random_double();

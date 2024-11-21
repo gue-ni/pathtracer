@@ -54,10 +54,12 @@ Material* Scene::add_material(const Material& m)
 
 void Scene::add_primitive(const Primitive& p)
 {
-  if (p.is_light()) {
-    m_lights.push_back(p);
+   Primitive p_new = p;
+   p_new.id = m_count++;
+  if (p_new.is_light()) {
+    m_lights.push_back(p_new);
   }
-  m_primitives.push_back(p);
+  m_primitives.push_back(p_new);
 }
 
 Primitive Scene::random_light()
@@ -72,7 +74,7 @@ Primitive Scene::random_light()
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
   for (auto it = begin; it != end; it++) {
-    it->id = m_count++;
+    //it->id = m_count++;
     add_primitive(*it);
   }
 }

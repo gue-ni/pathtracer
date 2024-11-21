@@ -66,8 +66,8 @@ struct Primitive {
   Primitive(const Triangle& t, Material* m) : type(TRIANGLE), triangle(t), material(m), bbox(AABB(t)) {}
   std::optional<Intersection> intersect(const Ray&) const;
   bool is_light() const;
-  glm::dvec3 sample_point() const;
-  double area() const;
+  glm::dvec3 sample_point(const glm::dvec3 &) const;
+  double sample_area() const;
 };
 
 void print_stats();
