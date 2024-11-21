@@ -12,11 +12,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
-#define BACKGROUND_SKY   0
-#define BACKGROUND_WHITE 1
-#define BACKGROUND_BLACK 2
-#define BACKGROUND       BACKGROUND_SKY
-
 Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U) {}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
@@ -54,11 +49,9 @@ Material* Scene::add_material(const Material& m)
 
 void Scene::add_primitive(const Primitive& p)
 {
-   Primitive p_new = p;
-   p_new.id = m_count++;
-  if (p_new.is_light()) {
-    m_lights.push_back(p_new);
-  }
+  Primitive p_new = p;
+  p_new.id = m_count++;
+  if (p_new.is_light()) m_lights.push_back(p_new);
   m_primitives.push_back(p_new);
 }
 
@@ -73,10 +66,7 @@ Primitive Scene::random_light()
 
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
-  for (auto it = begin; it != end; it++) {
-    //it->id = m_count++;
-    add_primitive(*it);
-  }
+  for (auto it = begin; it != end; it++) add_primitive(*it);
 }
 
 void Scene::compute_bvh() { m_bvh = std::make_unique<BVH>(m_primitives); }
@@ -89,7 +79,7 @@ struct Vertex {
   glm::dvec3 pos{};
   glm::dvec3 normal{};
   glm::dvec2 uv{};
-  int material_id;
+  int material_id = -1;
 };
 
 std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
