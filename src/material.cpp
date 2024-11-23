@@ -123,7 +123,7 @@ static double reflectance(double cosine, double refraction_index)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BxDF::BxDF(Intersection* s) : surface(s) {}
+BxDF::BxDF(Intersection const* const s) : surface(s) {}
 
 glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
@@ -175,6 +175,18 @@ glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
 }
 
 glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+
+glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& wo) const
+{
+  // TODO
+  return glm::dvec3();
+}
+
+glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& wo, const glm::dvec3& wi) const
+{
+  // TODO
+  return glm::dvec3();
+}
 
 glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }
 
@@ -357,5 +369,5 @@ BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
 
 bool Material::is_perfectly_specular() const
 {
-  return (type & Material::DIELECTRIC) || ((type & Material::SPECULAR) && roughness < 0.01);
+  return (type & Material::DIELECTRIC) || ((type & Material::SPECULAR) && (roughness < 0.01));
 }
