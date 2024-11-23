@@ -20,20 +20,9 @@ static glm::u8vec3 map_pixel(const glm::dvec3 color)
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
 
-Renderer::Renderer(Camera* camera, Scene* scene) : m_camera(camera), m_scene(scene)
+Renderer::Renderer(Camera* camera, Scene* scene)
+    : m_camera(camera), m_scene(scene), m_buffer(camera->width() * camera->height(), glm::dvec3(0.0))
 {
-  m_buffer = new glm::dvec3[m_camera->width() * m_camera->height()];
-
-  for (int y = 0; y < m_camera->height(); y++) {
-    for (int x = 0; x < m_camera->width(); x++) {
-      m_buffer[y * m_camera->width() + x] = glm::dvec3(0.0);
-    }
-  }
-}
-
-Renderer::~Renderer()
-{
-  if (m_buffer != nullptr) delete[] m_buffer;
 }
 
 void Renderer::render(int samples, int max_bounce, bool print_progress)
@@ -183,7 +172,7 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
 }
 
 // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
-glm::dvec3 aces_tone_map(glm::dvec3 x)
+static glm::dvec3 aces_tone_map(glm::dvec3 x)
 {
   const double a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
   return (x * (a * x + b)) / (x * (c * x + d) + e);
