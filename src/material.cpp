@@ -10,9 +10,7 @@ static double SameHemisphere(const glm::dvec3& a, const glm::dvec3& b) { return 
 
 static double CosTheta(const glm::dvec3& a) { return a.y; }
 
-// Cook-Torrance Microface BRDF
 // https://computergraphics.stackexchange.com/questions/7656/importance-sampling-microfacet-ggx
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static glm::dvec3 SchlickFresnel(const glm::dvec3& f0, double radians)
 {
   return f0 + (glm::dvec3(1.0) - f0) * std::pow(1.0 - radians, 5.0);
@@ -20,7 +18,6 @@ static glm::dvec3 SchlickFresnel(const glm::dvec3& f0, double radians)
 
 static double D_GGX(double NoH, double roughness)
 {
-  return 1;
   double alpha = roughness * roughness;
   double alpha2 = alpha * alpha;
   double NoH2 = NoH * NoH;
@@ -103,8 +100,6 @@ static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, cons
   return diffuse + specular;
 }
 
-//====================================================================
-// non height-correlated masking-shadowing function is described here:
 static double SmithGGXMaskingShadowing(double NoL, double NoV, double a2)
 {
   return 1;
@@ -121,15 +116,13 @@ static double reflectance(double cosine, double refraction_index)
   return r0 + (1 - r0) * std::pow((1 - cosine), 5);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 BxDF::BxDF(Intersection const* const s) : surface(s) {}
 
 glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return sample_specular(wo);
+      return sample_microfacet(wo);
     case Material::DIELECTRIC:
       return sample_dielectric(wo);
     default:
@@ -141,7 +134,7 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return eval_specular(wo, wi);
+      return eval_microfacet(wo, wi);
     case Material::DIELECTRIC:
       return eval_dielectric(wo, wi);
     default:
@@ -176,16 +169,66 @@ glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
 
 glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
 
+#define IMPORTANCE_SAMPLE 0
+
 glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& wo) const
 {
-  // TODO
-  return glm::dvec3();
+#if IMPORTANCE_SAMPLE
+  // Beckmann
+  double alpha = sq(surface->material->roughness);
+  double e0 = random_double(), e1 = random_double();
+  double phi = 2 * pi * e0;
+  double theta = std::atan(-alpha * std::log(e1));
+  glm::dvec3 wm = spherical_to_cartesian(theta, phi);
+  return glm::reflect(-wo, wm);
+#else
+  return sample_diffuse(wo);
+#endif
 }
 
 glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
-  // TODO
-  return glm::dvec3();
+  glm::dvec3 base_color = surface->albedo();
+  double metallic = surface->material->metallic;
+  double roughness = surface->material->roughness;
+
+  double alpha = sq(roughness);
+  double alpha2 = sq(alpha);
+
+  glm::dvec3 n = glm::dvec3(0, 1, 0);
+  glm::dvec3 wm = glm::normalize(wo + wi);
+
+  double n_dot_wo = wo.y;
+  double n_dot_wi = wi.y;
+  double n_dot_wm = wm.y;
+  double n_dot_wm2 = sq(n_dot_wm);
+  double wo_dot_wm = glm::dot(wo, wm);
+  double cos_theta = n_dot_wi;
+
+  glm::dvec3 f0 = glm::mix(glm::dvec3(0.04), base_color, metallic);
+
+  glm::dvec3 F = SchlickFresnel(f0, wo_dot_wm);
+
+  double G = G_Smith(n_dot_wo, n_dot_wi, roughness);
+
+  // Beckmann
+  // let d = ((nh2 - 1.0) / (m2 * nh2)).exp() / (m2 * glm::pi::<f64>() * nh2 * nh2);
+
+  double D = std::exp((n_dot_wm2 - 1.0) / (alpha2 * n_dot_wm2)) / (alpha2 * sq(n_dot_wm2));
+
+  glm::dvec3 specular = (F * G * D) / (4.0 * n_dot_wo * n_dot_wi);
+
+  glm::dvec3 diffuse = (glm::dvec3(1.0) - F) * base_color / pi;
+
+#if IMPORTANCE_SAMPLE
+  double cos_t = n_dot_wm;
+  double sin_t = std::sqrt(1.0 - sq(cos_t));
+  double pdf = (pi * alpha2 * std::pow(cos_t, 3)) * std::exp(-std::pow(sin_t / cos_t, 2));
+#else
+  double pdf = cos_theta / pi;
+#endif
+
+  return ((specular + diffuse) * cos_theta) / pdf;
 }
 
 glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }
@@ -213,7 +256,6 @@ glm::dvec3 BxDF::eval_dielectric(const glm::dvec3& wo, const glm::dvec3& wi) con
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
-// L = Le + (1/N) * ∑ (Li * brdf * cos(theta) * 1/pdf())
 BRDF::Sample BRDF::sample(const Ray& incoming)
 {
   switch (surface->material->type) {
