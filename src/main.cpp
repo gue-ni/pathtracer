@@ -80,7 +80,7 @@ static void from_json(const json& j, SimpleSphere& s)
   if (type == "SPECULAR") {
     s.type = Material::SPECULAR;
   } else if (type == "TRANSMISSIVE") {
-    s.type = Material::TRANSMISSIVE;
+    s.type = Material::DIELECTRIC;
   } else {
     s.type = Material::DIFFUSE;
   }

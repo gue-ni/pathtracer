@@ -66,7 +66,7 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
 // https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
 static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(0.2126, 0.7152, 0.0722)); }
 
-glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
+glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool perfect_reflection)
 {
   if (max_depth <= depth) {
     return glm::vec3(0);
@@ -114,11 +114,10 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
   glm::dvec3 radiance(0.0);
 
-  bool perfectly_specular =
-      material->type & Material::TRANSMISSIVE || (material->type & Material::SPECULAR && material->roughness < 0.01);
+  bool perfectly_specular = material->is_perfectly_specular();
 
 #if PT_DIRECT_LIGHT_SAMPLING
-  if (depth == 0 || perfectly_specular)
+  if (depth == 0 || perfectly_specular || perfect_reflection)
 #endif
   {
     radiance += material->emission;
@@ -132,7 +131,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth)
 
 #if PT_INDIRECT_LIGHT_SAMPLING
   Ray outgoing(surface.point, local2world * wi);
-  radiance += trace_ray(outgoing, depth + 1, max_depth) * brdf.eval(wi, wo);
+  radiance += trace_ray(outgoing, depth + 1, max_depth, perfectly_specular) * brdf.eval(wi, wo);
 #endif
 
   return radiance * rr_weight;

@@ -130,7 +130,7 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
   switch (surface->material->type) {
     case Material::SPECULAR:
       return sample_specular(wo);
-    case Material::TRANSMISSIVE:
+    case Material::DIELECTRIC:
       return sample_dielectric(wo);
     default:
       return sample_diffuse(wo);
@@ -142,7 +142,7 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
   switch (surface->material->type) {
     case Material::SPECULAR:
       return eval_specular(wo, wi);
-    case Material::TRANSMISSIVE:
+    case Material::DIELECTRIC:
       return eval_dielectric(wo, wi);
     default:
       return eval_diffuse(wo, wi);
@@ -176,13 +176,9 @@ glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
 
 glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
 
-glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { 
-  return glm::reflect(-wo, glm::dvec3(0, 1, 0));
-}
+glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }
 
-glm::dvec3 BxDF::eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const { 
-  return surface->albedo();
-}
+glm::dvec3 BxDF::eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
 
 glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& wo) const
 {
@@ -215,7 +211,7 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
 #else
       return (surface->material->roughness == 0) ? sample_mirror(incoming) : sample_microfacet(incoming);
 #endif
-    case Material::TRANSMISSIVE:
+    case Material::DIELECTRIC:
       return sample_transmissive(incoming);
     default:
       return sample_diffuse(incoming);
@@ -357,4 +353,9 @@ BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
   }
 
   return BRDF::Sample{outgoing, glm::dvec3(1, 1, 1)};
+}
+
+bool Material::is_perfectly_specular() const
+{
+  return (type & Material::DIELECTRIC) || ((type & Material::SPECULAR) && roughness < 0.01);
 }

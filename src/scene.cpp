@@ -131,7 +131,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       case 6:
       case 7:
       case 9:
-        material.type = Material::TRANSMISSIVE;
+        material.type = Material::DIELECTRIC;
         break;
       default:
         material.type = Material::DIFFUSE;

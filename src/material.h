@@ -12,7 +12,7 @@ struct Material {
   enum Type : uint8_t {
     DIFFUSE = 1 << 0,
     SPECULAR = 1 << 1,
-    TRANSMISSIVE = 1 << 2,
+    DIELECTRIC = 1 << 2,
     MIRROR = 1 << 3
   };
 
@@ -29,6 +29,7 @@ struct Material {
   Material(const glm::dvec3& a) : Material(DIFFUSE, a, glm::dvec3(0.0)) {}
   Material(const glm::dvec3& a, const glm::dvec3& r) : type(DIFFUSE), albedo(a), emission(r) {}
   Material(Type t, const glm::dvec3& a, const glm::dvec3& r) : type(t), albedo(a), emission(r) {}
+  bool is_perfectly_specular() const;
 };
 
 class BxDF
