@@ -113,7 +113,91 @@ static double SmithGGXMaskingShadowing(double NoL, double NoV, double a2)
   return (2.0 * NoL * NoV) / (denomA + denomB);
 }
 
+static double reflectance(double cosine, double refraction_index)
+{
+  // Use Schlick's approximation for reflectance.
+  auto r0 = (1 - refraction_index) / (1 + refraction_index);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BxDF::BxDF(Intersection* s) : surface(s) {}
+
+glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
+{
+  switch (surface->material->type) {
+    case Material::SPECULAR:
+      return sample_specular(wo);
+    case Material::DIELECTRIC:
+      return sample_dielectric(wo);
+    default:
+      return sample_diffuse(wo);
+  }
+}
+
+glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
+{
+  switch (surface->material->type) {
+    case Material::SPECULAR:
+      return eval_specular(wo, wi);
+    case Material::DIELECTRIC:
+      return eval_dielectric(wo, wi);
+    default:
+      return eval_diffuse(wo, wi);
+  }
+}
+
+glm::dvec3 BxDF::sample_diffuse(const glm::dvec3& wo) const
+{
+  double e0 = random_double(), e1 = random_double();
+  double phi = 2.0 * pi * e0;
+  double theta = std::acos(std::sqrt(e1));
+  return spherical_to_cartesian(theta, phi);
+}
+
+glm::dvec3 BxDF::eval_diffuse(const glm::dvec3& wo, const glm::dvec3& wi) const
+{
+#if 0
+  double cos_theta = wi.y;
+  double pdf = cos_theta / pi;
+  return ((surface->albedo() / pi)) * cos_theta / pdf;
+#else
+  return surface->albedo();
+#endif
+}
+
+glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
+{
+  double fuzz = surface->material->roughness;
+  return glm::reflect(-wo, glm::dvec3(0, 1, 0)) + (fuzz * random_unit_vector());
+}
+
+glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+
+glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }
+
+glm::dvec3 BxDF::eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+
+glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& wo) const
+{
+  double refraction_index = surface->material->refraction_index;
+  double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
+
+  double cos_theta = glm::min(wo.y, 1.0);
+  double sin_theta = std::sqrt(1.0 - sq(cos_theta));
+
+  glm::dvec3 normal(0, 1, 0);
+
+  if ((ri * sin_theta > 1.0) || (reflectance(cos_theta, ri) > random_double())) {
+    return glm::reflect(-wo, normal);
+  } else {
+    return glm::refract(-wo, normal, ri);
+  }
+}
+
+glm::dvec3 BxDF::eval_dielectric(const glm::dvec3& wo, const glm::dvec3& wi) const { return glm::dvec3(1); }
 
 BRDF::BRDF(Intersection* s) : surface(s) {}
 
@@ -127,7 +211,7 @@ BRDF::Sample BRDF::sample(const Ray& incoming)
 #else
       return (surface->material->roughness == 0) ? sample_mirror(incoming) : sample_microfacet(incoming);
 #endif
-    case Material::TRANSMISSIVE:
+    case Material::DIELECTRIC:
       return sample_transmissive(incoming);
     default:
       return sample_diffuse(incoming);
@@ -249,14 +333,6 @@ BRDF::Sample BRDF::sample_specular(const Ray& incoming)
   return BRDF::Sample{outgoing, albedo};
 }
 
-static double reflectance(double cosine, double refraction_index)
-{
-  // Use Schlick's approximation for reflectance.
-  auto r0 = (1 - refraction_index) / (1 + refraction_index);
-  r0 = r0 * r0;
-  return r0 + (1 - r0) * std::pow((1 - cosine), 5);
-}
-
 BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
 {
   double refraction_index = surface->material->refraction_index;
@@ -277,4 +353,9 @@ BRDF::Sample BRDF::sample_transmissive(const Ray& incoming)
   }
 
   return BRDF::Sample{outgoing, glm::dvec3(1, 1, 1)};
+}
+
+bool Material::is_perfectly_specular() const
+{
+  return (type & Material::DIELECTRIC) || ((type & Material::SPECULAR) && roughness < 0.01);
 }

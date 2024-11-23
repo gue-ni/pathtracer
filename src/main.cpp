@@ -23,6 +23,7 @@ struct SimpleSphere : public Sphere {
   std::string texture;
   double metallic;
   double roughness;
+  bool hidden;
 };
 
 struct Config {
@@ -66,6 +67,7 @@ static T get_or_else(const json& j, const std::string& key, T default_value)
 
 static void from_json(const json& j, SimpleSphere& s)
 {
+  s.hidden = get_or_else(j, "hidden", false);
   s.center = get_or_else(j, "center", glm::dvec3(0.0));
   s.radius = get_or_else(j, "radius", 1.0);
   s.albedo = get_or_else(j, "albedo", glm::dvec3(1.0));
@@ -78,7 +80,7 @@ static void from_json(const json& j, SimpleSphere& s)
   if (type == "SPECULAR") {
     s.type = Material::SPECULAR;
   } else if (type == "TRANSMISSIVE") {
-    s.type = Material::TRANSMISSIVE;
+    s.type = Material::DIELECTRIC;
   } else {
     s.type = Material::DIFFUSE;
   }
@@ -120,6 +122,9 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   }
 
   for (const auto& s : config.spheres) {
+  
+    if (s.hidden) continue;
+
     Material* material = scene->add_material(Material());
 
     material->type = s.type;

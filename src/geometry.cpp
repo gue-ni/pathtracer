@@ -4,6 +4,7 @@
 #include <optional>
 #include <atomic>
 #include <glm/glm.hpp>
+#include "util.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/io.hpp>
@@ -166,6 +167,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case SPHERE: {
       if (sphere.intersect(ray, ti, t)) {
         Intersection surface;
+        surface.id = id;
         surface.t = t;
         surface.point = ray.point_at(t);
         glm::dvec3 normal = (surface.point - sphere.center) / sphere.radius;
@@ -190,6 +192,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     case TRIANGLE: {
       if (triangle.intersect(ray, ti, t)) {
         Intersection surface;
+        surface.id = id;
         surface.t = t;
         surface.point = ray.point_at(t);
         surface.normal = triangle.normal(surface.point);
@@ -205,6 +208,39 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
     }
     default:
       return std::nullopt;
+  }
+}
+
+bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->emission, glm::dvec3(0.0))); }
+
+// get random point on primitive
+glm::dvec3 Primitive::sample_point(const glm::dvec3 &point) const
+{
+  double r1 = random_double(), r2 = random_double();
+  if (type == Type::TRIANGLE) {
+    double t = std::sqrt(r1);
+    double u = 1.0 - t;
+    double v = r2 * t;
+    double w = 1.0 - u - v;
+    return u * triangle.v0 + v * triangle.v1 + w * triangle.v2;
+  } else {
+    auto normal = glm::normalize(point - sphere.center);
+    return sphere.center + (random_on_hemisphere(normal) * sphere.radius);
+  }
+}
+
+// get area of primitive
+double Primitive::sample_area() const
+{
+  if (type == Type::TRIANGLE) {
+    glm::dvec3 v0v1 = triangle.v1 - triangle.v0;
+    glm::dvec3 v0v2 = triangle.v2 - triangle.v0;
+    double a = glm::length(v0v1); // TODO: remove
+    double b = glm::length(v0v2); // TODO: remove
+    return 0.5 * glm::length(glm::cross(v0v1, v0v2));
+  } else {
+    // we actually sample only the hemisphere that is towards us
+    return (4.0 * pi * sq(sphere.radius)) / 2.0;
   }
 }
 

@@ -25,7 +25,7 @@ jobs:
     - name: Render
       run: |
         samples=64
-        bounces=7
+        bounces=3
         ${{github.workspace}}/build/pt assets/cornell_box/cornell_box.json "github_${samples}_${bounces}.png" $samples $bounces 0
         echo "$(date)"                       >> metadata.txt
         echo "$(git rev-parse --short HEAD)" >> metadata.txt
