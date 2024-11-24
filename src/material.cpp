@@ -223,7 +223,7 @@ glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& wo, const glm::dvec3& wi) con
 #if IMPORTANCE_SAMPLE
   double cos_t = n_dot_wm;
   double sin_t = std::sqrt(1.0 - sq(cos_t));
-  double pdf = (pi * alpha2 * std::pow(cos_t, 3)) * std::exp(-std::pow(sin_t / cos_t, 2));
+  double pdf = (1.0 / (pi * alpha * cb(cos_t))) * std::exp(-sq(sin_t / cos_t) / alpha);
 #else
   double pdf = cos_theta / pi;
 #endif

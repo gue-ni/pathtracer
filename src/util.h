@@ -14,6 +14,9 @@ constexpr double pi = 3.14159265359;
 // x^2
 constexpr inline double sq(double x) { return x * x; }
 
+// x^3
+constexpr inline double cb(double x) { return x * x * x; }
+
 template <typename T>
 struct Interval {
   T min, max;
@@ -110,12 +113,10 @@ inline glm::dvec3 uniform_hemisphere_sampling(const glm::dvec3& normal)
   return spherical_to_cartesian(theta, phi);
 }
 
-inline glm::dvec3 random_on_hemisphere(const glm::dvec3& normal) {
-    auto on_unit_sphere = random_unit_vector();
-    if (glm::dot(on_unit_sphere, normal) > 0.0) 
-        return on_unit_sphere;
-    else
-        return -on_unit_sphere;
+inline glm::dvec3 random_on_hemisphere(const glm::dvec3& normal)
+{
+  auto on_unit_sphere = random_unit_vector();
+  return (glm::dot(on_unit_sphere, normal) > 0.0) ? on_unit_sphere : -on_unit_sphere;
 }
 
 inline glm::dvec3 cosine_weighted_sampling(const glm::dvec3& normal)
