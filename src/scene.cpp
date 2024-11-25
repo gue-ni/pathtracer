@@ -208,7 +208,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   std::vector<Primitive> triangles;
 
-  Material* default_material = add_material(Material(glm::dvec3(0.5)));
+  Material* default_material = add_material(Material{.albedo = glm::dvec3(0.5)});
 
   size_t triangle_count = vertices.size() / 3;
   for (size_t i = 0; i < triangle_count; i++) {
