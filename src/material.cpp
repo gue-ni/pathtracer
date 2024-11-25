@@ -41,18 +41,6 @@ static double D_Blinn_Phong(double NoH, double roughness)
   return ((alpha + 2) * std::pow(NoH, alpha)) / (2.0 * pi);
 }
 
-#if 0
-static std::tuple<double, double, double> Sample_BlinnPhong(double NoH, double roughness)
-{
-  double alpha = sq(roughness);
-  double e0 = random_double(), e1 = random_double();
-  double phi = 2 * pi * e0;
-  double theta = std::acos(std::pow(e1, (1 / (alpha + 2))));
-
-  double pdf = ((alpha + 2) std::pow(NoH, alpha)) / (2 * pi);
-}
-#endif
-
 static double G1_GGX_Schlick(double NoV, double roughness)
 {
   double alpha = roughness * roughness;
@@ -122,7 +110,7 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return sample_microfacet(wo);
+      return sample_specular(wo);
     case Material::DIELECTRIC:
       return sample_dielectric(wo);
     default:
@@ -134,7 +122,7 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
   switch (surface->material->type) {
     case Material::SPECULAR:
-      return eval_microfacet(wo, wi);
+      return eval_specular(wo, wi);
     case Material::DIELECTRIC:
       return eval_dielectric(wo, wi);
     default:
@@ -240,10 +228,10 @@ glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& wo) const
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
+  glm::dvec3 normal(0, 1, 0);
+
   double cos_theta = glm::min(wo.y, 1.0);
   double sin_theta = std::sqrt(1.0 - sq(cos_theta));
-
-  glm::dvec3 normal(0, 1, 0);
 
   if ((ri * sin_theta > 1.0) || (reflectance(cos_theta, ri) > random_double())) {
     return glm::reflect(-wo, normal);
