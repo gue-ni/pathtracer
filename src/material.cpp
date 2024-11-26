@@ -34,8 +34,14 @@ static double D_Beckmann(double NoH, double roughness)
 {
   double alpha = sq(roughness);
   double alpha2 = sq(alpha);
+  double NoH4 = (NoH * NoH * NoH * NoH);
 
-  return 0;
+  return (1.0 / (pi * alpha2 * NoH4)) * std::exp(-());
+}
+
+static glm::dvec3 Sample_Beckmann()
+{
+  return glm::dvec3();
 }
 
 static double PDF_Beckmann() { return 0; }
