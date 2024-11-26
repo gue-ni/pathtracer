@@ -4,6 +4,11 @@
 #include "geometry.h"
 #include "util.h"
 
+/*
+Links:
+https://agraphicsguynotes.com/posts/sample_microfacet_brdf/
+*/
+
 static double abs_dot(const glm::dvec3& a, const glm::dvec3& b) { return glm::clamp(glm::dot(a, b), 0.0, 1.0); }
 
 static double SameHemisphere(const glm::dvec3& a, const glm::dvec3& b) { return glm::dot(a, b) > 0.0; }
