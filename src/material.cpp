@@ -4,7 +4,7 @@
 #include "geometry.h"
 #include "util.h"
 
-#define PT_IMPORTANCE_SAMPLE 1
+#define PT_IMPORTANCE_SAMPLE 0
 
 /*
 Links:
@@ -66,7 +66,6 @@ static double PDF_Beckmann(double NoH, double roughness)
   // double alpha = sq(roughness);
   double alpha2 = sq(roughness);
   double NoH2 = sq(NoH);
-  double NoH4 = sq(NoH2);
   double sinTheta = std::sqrt(1.0 - NoH2);
   double tanTheta = sinTheta / NoH;
   double NoH3 = NoH * NoH * NoH;
