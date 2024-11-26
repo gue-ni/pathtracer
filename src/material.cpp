@@ -4,7 +4,7 @@
 #include "geometry.h"
 #include "util.h"
 
-#define PT_IMPORTANCE_SAMPLE 0
+#define PT_IMPORTANCE_SAMPLE 1
 
 /*
 Links:
@@ -63,8 +63,8 @@ static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
 
 static double PDF_Beckmann(double NoH, double roughness)
 {
-  // double alpha = sq(roughness);
-  double alpha2 = sq(roughness);
+  double alpha = sq(roughness);
+  double alpha2 = sq(alpha);
   double NoH2 = sq(NoH);
   double sinTheta = std::sqrt(1.0 - NoH2);
   double tanTheta = sinTheta / NoH;
@@ -185,7 +185,7 @@ glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& V, const glm::dvec3& L) const
 
   double NoV = CosTheta(V);
   double NoL = CosTheta(L);
-  double NoH = CosTheta(V);
+  double NoH = CosTheta(H);
   double VoH = AbsDot(V, H);
 
   glm::dvec3 f0 = glm::mix(glm::dvec3(0.04), base_color, metallic);
