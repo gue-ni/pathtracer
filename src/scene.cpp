@@ -123,9 +123,11 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
         material.type = Material::DIFFUSE;
         break;
       case 3:
-      case 5:
       case 8:
         material.type = Material::SPECULAR;
+        break;
+      case 5:
+        material.type = Material::MICROFACET;
         break;
       case 4:
       case 6:

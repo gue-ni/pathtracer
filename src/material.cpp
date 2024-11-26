@@ -7,6 +7,7 @@
 /*
 Links:
 https://agraphicsguynotes.com/posts/sample_microfacet_brdf/
+https://computergraphics.stackexchange.com/questions/7656/importance-sampling-microfacet-ggx
 */
 
 static double abs_dot(const glm::dvec3& a, const glm::dvec3& b) { return glm::clamp(glm::dot(a, b), 0.0, 1.0); }
@@ -15,7 +16,6 @@ static double SameHemisphere(const glm::dvec3& a, const glm::dvec3& b) { return 
 
 static double CosTheta(const glm::dvec3& a) { return a.y; }
 
-// https://computergraphics.stackexchange.com/questions/7656/importance-sampling-microfacet-ggx
 static glm::dvec3 SchlickFresnel(const glm::dvec3& f0, double radians)
 {
   return f0 + (glm::dvec3(1.0) - f0) * std::pow(1.0 - radians, 5.0);
@@ -37,16 +37,20 @@ static double D_Beckmann(double NoH, double roughness)
   double NoH2 = sq(NoH);
   double NoH4 = sq(NoH2);
   double tanTheta = std::sqrt(1.0 - NoH2) / NoH;
-
   return (1.0 / (pi * alpha2 * NoH4)) * std::exp(-(sq(tanTheta)) / alpha2);
 }
 
-static glm::dvec3 Sample_Beckmann()
+static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
 {
-  return glm::dvec3();
+  double alpha = sq(roughness);
+  double e0 = random_double(), e1 = random_double();
+  double phi = 2 * pi * e0;
+  double theta = std::atan(-alpha * std::log(e1));
+  glm::dvec3 H = spherical_to_cartesian(theta, phi);
+  return glm::reflect(-V, H);
 }
 
-static double PDF_Beckmann() { return 0; }
+static double PDF_Beckmann(double NoH, double roughness) { return 1.0; }
 
 static double D_Blinn_Phong(double NoH, double roughness)
 {
@@ -79,13 +83,8 @@ static glm::dvec3 microfacet_brdf(const glm::dvec3& L, const glm::dvec3& V, cons
   double NoH = glm::clamp(glm::dot(N, H), 0.0, 1.0);
   double VoH = glm::clamp(glm::dot(V, H), 0.0, 1.0);
 
-#if 0
-  glm::dvec3 f0 = glm::vec3(0.16 * (reflectance * reflectance));
-  f0 = glm::mix(f0, base_color, metallic);
-#else
   glm::dvec3 f0(0.04);
   f0 = glm::mix(f0, base_color, metallic);
-#endif
 
   glm::dvec3 F = SchlickFresnel(f0, VoH);
   double D = D_GGX(NoH, roughness);
@@ -124,6 +123,8 @@ glm::dvec3 BxDF::sample(const glm::dvec3& wo) const
   switch (surface->material->type) {
     case Material::SPECULAR:
       return sample_specular(wo);
+    case Material::MICROFACET:
+      return sample_microfacet(wo);
     case Material::DIELECTRIC:
       return sample_dielectric(wo);
     default:
@@ -136,6 +137,8 @@ glm::dvec3 BxDF::eval(const glm::dvec3& wo, const glm::dvec3& wi) const
   switch (surface->material->type) {
     case Material::SPECULAR:
       return eval_specular(wo, wi);
+    case Material::MICROFACET:
+      return eval_microfacet(wo, wi);
     case Material::DIELECTRIC:
       return eval_dielectric(wo, wi);
     default:
@@ -175,20 +178,18 @@ glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const
 glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& wo) const
 {
 #if IMPORTANCE_SAMPLE
-  // Beckmann
-  double alpha = sq(surface->material->roughness);
-  double e0 = random_double(), e1 = random_double();
-  double phi = 2 * pi * e0;
-  double theta = std::atan(-alpha * std::log(e1));
-  glm::dvec3 wm = spherical_to_cartesian(theta, phi);
-  return glm::reflect(-wo, wm);
+  return Sample_Beckmann(wo, surface->material->roughness);
 #else
   return sample_diffuse(wo);
 #endif
 }
 
-glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& wo, const glm::dvec3& wi) const
+glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& V, const glm::dvec3& L) const
 {
+  if (!SameHemisphere(V, L)) {
+    return glm::dvec3(0);
+  }
+
   glm::dvec3 base_color = surface->albedo();
   double metallic = surface->material->metallic;
   double roughness = surface->material->roughness;
@@ -196,40 +197,34 @@ glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& wo, const glm::dvec3& wi) con
   double alpha = sq(roughness);
   double alpha2 = sq(alpha);
 
-  glm::dvec3 n = glm::dvec3(0, 1, 0);
-  glm::dvec3 wm = glm::normalize(wo + wi);
+  glm::dvec3 N = glm::dvec3(0, 1, 0);
+  glm::dvec3 H = glm::normalize(V + L);
 
-  double n_dot_wo = wo.y;
-  double n_dot_wi = wi.y;
-  double n_dot_wm = wm.y;
-  double n_dot_wm2 = sq(n_dot_wm);
-  double wo_dot_wm = glm::dot(wo, wm);
-  double cos_theta = n_dot_wi;
+  double NoV = CosTheta(V);
+  double NoL = CosTheta(L);
+  double NoH = CosTheta(V);
+  double VoH = glm::dot(V, H);
 
   glm::dvec3 f0 = glm::mix(glm::dvec3(0.04), base_color, metallic);
 
-  glm::dvec3 F = SchlickFresnel(f0, wo_dot_wm);
+  glm::dvec3 F = SchlickFresnel(f0, VoH);
+  double G = G_Smith(NoV, NoL, roughness);
+  double D = D_Beckmann(NoH, roughness);
 
-  double G = G_Smith(n_dot_wo, n_dot_wi, roughness);
-
-  // Beckmann
-  // let d = ((nh2 - 1.0) / (m2 * nh2)).exp() / (m2 * glm::pi::<f64>() * nh2 * nh2);
-
-  double D = std::exp((n_dot_wm2 - 1.0) / (alpha2 * n_dot_wm2)) / (alpha2 * sq(n_dot_wm2));
-
-  glm::dvec3 specular = (F * G * D) / (4.0 * n_dot_wo * n_dot_wi);
+  glm::dvec3 specular = (F * G * D) / (4.0 * NoV * NoL);
 
   glm::dvec3 diffuse = (glm::dvec3(1.0) - F) * base_color / pi;
 
 #if IMPORTANCE_SAMPLE
-  double cos_t = n_dot_wm;
-  double sin_t = std::sqrt(1.0 - sq(cos_t));
-  double pdf = (1.0 / (pi * alpha * cb(cos_t))) * std::exp(-sq(sin_t / cos_t) / alpha);
+  // double cosTheta = NoH;
+  // double sinTheta = std::sqrt(1.0 - sq(cosTheta));
+  // double pdf = (1.0 / (pi * alpha * cb(cosTheta))) * std::exp(-sq(sinTheta / cosTheta) / alpha);
+  double pdf = PDF_Beckmann(NoH, roughness);
 #else
-  double pdf = cos_theta / pi;
+  double pdf = NoL / pi;
 #endif
 
-  return ((specular + diffuse) * cos_theta) / pdf;
+  return ((specular)*NoL) / pdf;
 }
 
 glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }

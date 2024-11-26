@@ -9,7 +9,7 @@
 struct Intersection;
 
 struct Material {
-  enum Type : uint8_t { DIFFUSE = 1 << 0, SPECULAR = 1 << 1, DIELECTRIC = 1 << 2, MIRROR = 1 << 3 };
+  enum Type : uint8_t { DIFFUSE = 1 << 0, SPECULAR = 1 << 1, DIELECTRIC = 1 << 2, MIRROR = 1 << 3, MICROFACET = 1 << 4, };
 
   Type type = DIFFUSE;
   glm::dvec3 albedo = glm::dvec3(0.8);
