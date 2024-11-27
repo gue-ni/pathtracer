@@ -47,7 +47,9 @@ static double D_Beckmann(double NoH, double roughness)
   double NoH4 = sq(NoH2);
   double sinTheta = std::sqrt(1.0 - NoH2);
   double tanTheta = sinTheta / NoH;
-  return std::exp((NoH2 - 1.0) / (alpha2 * NoH2)) / (alpha2 * pi * NoH4);
+  double a = 1.0 / (alpha2 * NoH4);
+  double b = std::exp(-sq(tanTheta) / alpha2);
+  return a * b;
 }
 
 static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
@@ -56,7 +58,7 @@ static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
   double alpha2 = sq(alpha);
   double e0 = random_double(), e1 = random_double();
   double phi = 2.0 * pi * e0;
-  double theta = std::atan(std::sqrt(-alpha2 * std::log(e1)));
+  double theta = std::atan(std::sqrt(-alpha2 * std::log(1.0 - (e1 / pi))));
   glm::dvec3 H = spherical_to_cartesian(theta, phi);
   return glm::reflect(-V, H);
 }
@@ -65,12 +67,11 @@ static double PDF_Beckmann(double NoH, double roughness)
 {
   double alpha = sq(roughness);
   double alpha2 = sq(alpha);
-  double NoH2 = sq(NoH);
-  double sinTheta = std::sqrt(1.0 - NoH2);
+  double sinTheta = std::sqrt(1.0 - sq(NoH));
   double tanTheta = sinTheta / NoH;
   double NoH3 = NoH * NoH * NoH;
-  double a = 1.0 / (pi * alpha2 * NoH3);
-  double b = std::exp(-sq(sinTheta / NoH) / alpha2);
+  double a = 1.0 / (alpha2 * NoH3);
+  double b = std::exp(-sq(tanTheta) / alpha2);
   return a * b;
 }
 
@@ -169,10 +170,6 @@ glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& wo) const
 
 glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& V, const glm::dvec3& L) const
 {
-  if (!SameHemisphere(V, L)) {
-    return glm::dvec3(0);
-  }
-
   glm::dvec3 base_color = surface->albedo();
   double metallic = surface->material->metallic;
   double roughness = surface->material->roughness;

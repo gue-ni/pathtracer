@@ -117,11 +117,6 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     Material material;
 
     switch (m.illum) {
-      case 0:
-      case 1:
-      case 2:
-        material.type = Material::DIFFUSE;
-        break;
       case 3:
       case 8:
         material.type = Material::SPECULAR;
@@ -135,6 +130,9 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       case 9:
         material.type = Material::DIELECTRIC;
         break;
+      case 0:
+      case 1:
+      case 2:
       default:
         material.type = Material::DIFFUSE;
         break;
