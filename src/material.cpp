@@ -59,8 +59,7 @@ static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
   double e0 = random_double(), e1 = random_double();
   double phi = 2.0 * pi * e0;
   double theta = std::atan(std::sqrt(-alpha2 * std::log(1.0 - (e1 / pi))));
-  glm::dvec3 H = spherical_to_cartesian(theta, phi);
-  return glm::reflect(-V, H);
+  return glm::reflect(-V, spherical_to_cartesian(theta, phi));
 }
 
 static double PDF_Beckmann(double NoH, double roughness)
@@ -70,7 +69,7 @@ static double PDF_Beckmann(double NoH, double roughness)
   double sinTheta = std::sqrt(1.0 - sq(NoH));
   double tanTheta = sinTheta / NoH;
   double NoH3 = NoH * NoH * NoH;
-  double a = 1.0 / (alpha2 * NoH3);
+  double a = 1.0 / (alpha2 * NoH3 * pi);
   double b = std::exp(-sq(tanTheta) / alpha2);
   return a * b;
 }

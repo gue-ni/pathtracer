@@ -26,7 +26,7 @@ static glm::dvec3 sky_gradient(const glm::dvec3& direction)
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 }
 
-glm::dvec3 Scene::background(const Ray& r)
+glm::dvec3 Scene::sample_background(const Ray& r)
 {
   if (m_background_texture) {
     auto color = m_background_texture->sample(equirectangular(r.direction));

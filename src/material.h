@@ -9,7 +9,13 @@
 struct Intersection;
 
 struct Material {
-  enum Type : uint8_t { DIFFUSE = 1 << 0, SPECULAR = 1 << 1, DIELECTRIC = 1 << 2, MIRROR = 1 << 3, MICROFACET = 1 << 4, };
+  enum Type : uint8_t {
+    DIFFUSE = 1 << 0,
+    SPECULAR = 1 << 1,
+    DIELECTRIC = 1 << 2,
+    MIRROR = 1 << 3,
+    MICROFACET = 1 << 4,
+  };
 
   Type type = DIFFUSE;
   glm::dvec3 albedo = glm::dvec3(0.8);
@@ -20,9 +26,13 @@ struct Material {
   double metallic = 0.5;    // 0.0 for dielectrics, 1.0 for metals
   Image* texture = nullptr;
 
+  inline bool is_type(Type other_type) const { return type & other_type; }
+
   inline bool is_perfectly_specular() const
   {
-    return (type & Material::DIELECTRIC) || ((type & Material::SPECULAR) && (roughness < 0.01));
+    constexpr double THRESHOLD = 1e-9;
+    return is_type(Material::DIELECTRIC) || is_type(Material::MIRROR) ||
+           ((is_type(Material::SPECULAR) || is_type(Material::MICROFACET)) && (roughness < THRESHOLD));
   }
 };
 
