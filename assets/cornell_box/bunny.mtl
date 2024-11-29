@@ -1,0 +1,14 @@
+# Blender MTL File: 'cornell_box.blend'
+# Material Count: 1
+
+newmtl Bunny
+Ns 308.716640
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+Pm 0.5
+Pr 0.5
+illum 4
