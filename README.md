@@ -15,18 +15,14 @@ This is my toy monte-carlo path tacer.
 ## Build
 
 ```bash
-mkdir build cd build
+mkdir build && cd build
 cmake ..
 cmake --build .
 ```
 
-## Check Mem Leaks
-
-```bash
-valgrind --leak-check=full --log-file=valgrind_report.txt ./pt 2
-```
-
 ## Results
+
+![](./doc/results/render_d94b533_1024_3_25-11-2024_202142.png)
 
 ![](./doc/results/render_5000s_3b_1731181914.png)
 

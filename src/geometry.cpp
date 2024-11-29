@@ -195,8 +195,19 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
         surface.id = id;
         surface.t = t;
         surface.point = ray.point_at(t);
-        surface.normal = triangle.normal(surface.point);
-        surface.inside = false;
+        glm::dvec3 normal = triangle.normal(surface.point);
+        if (is_light()) {
+          surface.normal = normal;
+          surface.inside = true;
+        } else {
+          if (glm::dot(ray.direction, normal) > 0.0) {
+            surface.normal = -normal;
+            surface.inside = false;
+          } else {
+            surface.normal = normal;
+            surface.inside = true;
+          }
+        }
         surface.material = material;
         if (surface.material->texture) {
           surface.uv = triangle.texcoord(surface.point);
@@ -214,7 +225,7 @@ std::optional<Intersection> Primitive::intersect(const Ray& ray) const
 bool Primitive::is_light() const { return glm::any(glm::greaterThan(material->emission, glm::dvec3(0.0))); }
 
 // get random point on primitive
-glm::dvec3 Primitive::sample_point(const glm::dvec3 &point) const
+glm::dvec3 Primitive::sample_point(const glm::dvec3& point) const
 {
   double r1 = random_double(), r2 = random_double();
   if (type == Type::TRIANGLE) {
@@ -235,8 +246,6 @@ double Primitive::sample_area() const
   if (type == Type::TRIANGLE) {
     glm::dvec3 v0v1 = triangle.v1 - triangle.v0;
     glm::dvec3 v0v2 = triangle.v2 - triangle.v0;
-    double a = glm::length(v0v1); // TODO: remove
-    double b = glm::length(v0v2); // TODO: remove
     return 0.5 * glm::length(glm::cross(v0v1, v0v2));
   } else {
     // we actually sample only the hemisphere that is towards us

@@ -26,7 +26,7 @@ static glm::dvec3 sky_gradient(const glm::dvec3& direction)
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 }
 
-glm::dvec3 Scene::background(const Ray& r)
+glm::dvec3 Scene::sample_background(const Ray& r)
 {
   if (m_background_texture) {
     auto color = m_background_texture->sample(equirectangular(r.direction));
@@ -117,15 +117,12 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
     Material material;
 
     switch (m.illum) {
-      case 0:
-      case 1:
-      case 2:
-        material.type = Material::DIFFUSE;
-        break;
       case 3:
-      case 5:
       case 8:
         material.type = Material::SPECULAR;
+        break;
+      case 5:
+        material.type = Material::MICROFACET;
         break;
       case 4:
       case 6:
@@ -133,6 +130,9 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
       case 9:
         material.type = Material::DIELECTRIC;
         break;
+      case 0:
+      case 1:
+      case 2:
       default:
         material.type = Material::DIFFUSE;
         break;
@@ -208,7 +208,7 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
   std::vector<Primitive> triangles;
 
-  Material* default_material = add_material(Material(glm::dvec3(0.5)));
+  Material* default_material = add_material(Material{.albedo = glm::dvec3(0.5)});
 
   size_t triangle_count = vertices.size() / 3;
   for (size_t i = 0; i < triangle_count; i++) {

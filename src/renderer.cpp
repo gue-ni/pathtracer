@@ -66,7 +66,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool pe
   auto possible_hit = m_scene->find_intersection(ray);
 
   if (!possible_hit.has_value()) {
-    return m_scene->background(ray);
+    return m_scene->sample_background(ray);
   }
 
   Intersection surface = possible_hit.value();

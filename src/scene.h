@@ -21,7 +21,7 @@ class Scene
   Material* add_material(const Material& m);
   std::vector<Primitive> load_obj(const std::filesystem::path& filename);
   std::optional<Intersection> find_intersection(const Ray&);
-  glm::dvec3 background(const Ray&);
+  glm::dvec3 sample_background(const Ray&);
   size_t primitive_count() const { return m_primitives.size(); }
   glm::dvec3 center() const;
   glm::dvec3 size() const;
