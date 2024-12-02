@@ -41,6 +41,7 @@ add_executable(pt
   "src/bvh.cpp"
   "src/tiny_obj_loader.cpp"
   "src/image.cpp"
+  "src/medium.cpp"
 )
 
 target_include_directories(pt PUBLIC "${glm_SOURCE_DIR}")

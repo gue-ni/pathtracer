@@ -8,6 +8,7 @@
 #define PT_RUSSIAN_ROULETTE        1
 #define PT_DIRECT_LIGHT_SAMPLING   1
 #define PT_INDIRECT_LIGHT_SAMPLING 1
+#define PT_VOLUMETRIC              1
 
 std::atomic<uint64_t> bounce_counter = 0;
 
@@ -74,6 +75,10 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool pe
 
 #if PT_DEBUG_NORMAL
   return normal_as_color(surface.normal);
+#endif
+
+#if PT_VOLUMETRIC
+
 #endif
 
 #if PT_RUSSIAN_ROULETTE
