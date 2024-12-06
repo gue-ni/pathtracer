@@ -145,10 +145,10 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   }
 
   if (!config.background_texture.empty()) {
-    Image* image = new Image();
+    auto image = std::make_unique<Image>();
     if (image->load(config.background_texture)) {
       std::cout << "Loaded environment texture " << config.background_texture << std::endl;
-      scene->set_envmap(image);
+      scene->set_background_texture(std::move(image));
     } else {
       std::cerr << "Failed to load environment texture " << config.background_texture << std::endl;
       exit(1);
