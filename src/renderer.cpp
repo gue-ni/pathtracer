@@ -21,12 +21,15 @@ static glm::u8vec3 map_pixel(const glm::dvec3 color)
 
 static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
 
-Renderer::Renderer(Camera* camera, Scene* scene)
-    : m_camera(camera), m_scene(scene), m_buffer(camera->width() * camera->height(), glm::dvec3(0.0))
+Renderer::Renderer(Camera* camera, Scene* scene, int max_bounce)
+    : m_camera(camera),
+      m_scene(scene),
+      m_buffer(camera->width() * camera->height(), glm::dvec3(0.0)),
+      m_max_bounce(max_bounce)
 {
 }
 
-void Renderer::render(int samples, int max_bounce, bool print_progress)
+void Renderer::render(int samples, bool print_progress)
 {
   double sample_weight = 1.0 / double(samples);
 
@@ -42,7 +45,7 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        auto color = trace_ray(ray, 0, max_bounce);
+        auto color = trace_ray(ray, 0);
         result = glm::mix(result, color, 1.0 / double(total_samples + s + 1));
       }
 
@@ -56,9 +59,9 @@ void Renderer::render(int samples, int max_bounce, bool print_progress)
 // https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
 static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(0.2126, 0.7152, 0.0722)); }
 
-glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool perfect_reflection)
+glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, bool perfect_reflection)
 {
-  if (max_depth <= depth) {
+  if (m_max_bounce <= depth) {
     return glm::vec3(0);
   }
 
@@ -75,10 +78,6 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool pe
 
 #if PT_DEBUG_NORMAL
   return normal_as_color(surface.normal);
-#endif
-
-#if PT_VOLUMETRIC
-
 #endif
 
 #if PT_RUSSIAN_ROULETTE
@@ -100,6 +99,23 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool pe
 
   glm::mat3 local2world = local_to_world(surface.normal);
   glm::mat3 world2local = glm::inverse(local2world);
+
+#if PT_VOLUMETRIC
+
+  const Medium* medium = m_scene->medium();
+
+  if (!surface.inside) {
+    std::optional<ScatterEvent> scatter_event = medium->interaction(surface.t);
+
+    if (scatter_event) {
+      ScatterEvent event = scatter_event.value();
+
+      return medium->transmittance(event.t) * medium->phase_function(-ray.direction, scatter_event.direction) *
+             trace_ray(event.ray, depth + 1);
+    }
+  }
+
+#endif
 
   BxDF brdf(&surface);
 
@@ -125,7 +141,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, int max_depth, bool pe
 
 #if PT_INDIRECT_LIGHT_SAMPLING
   Ray outgoing(surface.point, local2world * wi);
-  radiance += trace_ray(outgoing, depth + 1, max_depth, perfectly_specular) * brdf.eval(wi, wo);
+  radiance += trace_ray(outgoing, depth + 1, perfectly_specular) * brdf.eval(wi, wo);
 #endif
 
   return radiance * rr_weight;

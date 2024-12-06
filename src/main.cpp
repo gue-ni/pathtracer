@@ -122,7 +122,6 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   }
 
   for (const auto& s : config.spheres) {
-  
     if (s.hidden) continue;
 
     Material* material = scene->add_material(Material());
@@ -157,7 +156,6 @@ std::tuple<std::unique_ptr<Scene>, std::unique_ptr<Camera>> setup_scene(const Co
   } else {
     scene->set_background_color(config.background_color);
   }
-
 
   std::unique_ptr<Camera> camera = std::make_unique<Camera>(config.image_width, config.image_height, config.camera_fov,
                                                             config.camera_aperture, config.camera_focus_distance);
@@ -235,7 +233,7 @@ int main(int argc, char** argv)
   std::cout << "Scene Center: " << scene->center() << std::endl;
   std::cout << "Primitive Count: " << scene->primitive_count() << std::endl;
 
-  Renderer renderer(camera.get(), scene.get());
+  Renderer renderer(camera.get(), scene.get(), config.max_bounce);
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -245,7 +243,7 @@ int main(int argc, char** argv)
     while (renderer.total_samples < config.samples_per_pixel) {
       int todo = config.samples_per_pixel - renderer.total_samples;
       if (batch > todo) batch = todo;
-      renderer.render(batch, config.max_bounce, config.print_progress);
+      renderer.render(batch, config.print_progress);
 
       printf("%d/%d samples per pixel\n", renderer.total_samples, config.samples_per_pixel);
 
@@ -253,7 +251,7 @@ int main(int argc, char** argv)
       renderer.save_image(path);
     }
   } else {
-    renderer.render(config.samples_per_pixel, config.max_bounce, config.print_progress);
+    renderer.render(config.samples_per_pixel, config.print_progress);
   }
 
   auto end = std::chrono::high_resolution_clock::now();
