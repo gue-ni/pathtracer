@@ -12,12 +12,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
-Scene::Scene()
-    : m_bvh(nullptr),
-      m_background_texture(nullptr),
-      m_background_color(-1.0),
-      m_count(0U),
-      m_medium(std::make_unique<Medium>())
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U), m_medium(nullptr)
+{
+}
+
+Scene::Scene(std::unique_ptr<Medium> medium)
+    : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U), m_medium(std::move(medium))
 {
 }
 

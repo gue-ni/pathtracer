@@ -16,6 +16,7 @@ class Scene
 {
  public:
   Scene();
+  Scene(std::unique_ptr<Medium> medium);
   void compute_bvh();
   void add_primitive(const Primitive& p);
   void add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end);

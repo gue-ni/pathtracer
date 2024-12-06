@@ -101,7 +101,6 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, bool perfect_reflectio
   glm::mat3 world2local = glm::inverse(local2world);
 
 #if PT_VOLUMETRIC
-
   if (!surface.inside && m_scene->medium()) {
     const Medium* medium = m_scene->medium();
     std::optional<ScatterEvent> event = medium->interaction(surface.t);
@@ -110,7 +109,6 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, bool perfect_reflectio
              trace_ray(event->ray, depth + 1);
     }
   }
-
 #endif
 
   BxDF brdf(&surface);
