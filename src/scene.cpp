@@ -12,7 +12,14 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
-Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U) {}
+Scene::Scene()
+    : m_bvh(nullptr),
+      m_background_texture(nullptr),
+      m_background_color(-1.0),
+      m_count(0U),
+      m_medium(std::make_unique<Medium>())
+{
+}
 
 std::optional<Intersection> Scene::find_intersection(const Ray& ray)
 {
@@ -57,8 +64,8 @@ void Scene::add_primitive(const Primitive& p)
 
 Primitive Scene::random_light()
 {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
   std::uniform_int_distribution<> distr(0, int(m_lights.size() - 1));
   int random_index = distr(gen);
   return m_lights[random_index];
@@ -140,12 +147,8 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emission = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
-    material.shininess = m.shininess;
-#if 1
-    // PBR parameters
     material.roughness = m.roughness;
     material.metallic = m.metallic;
-#endif
 
     if (!m.diffuse_texname.empty()) {
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);

@@ -5,6 +5,7 @@
 #include "geometry.h"
 #include "material.h"
 #include "ray.h"
+#include "medium.h"
 #include <glm/glm.hpp>
 #include <vector>
 #include <array>
@@ -30,6 +31,7 @@ class Scene
   int light_count() const { return m_lights.size(); }
   Primitive random_light();
   std::vector<Primitive> lights() { return m_lights; }
+  const Medium * medium() const  { return m_medium.get(); }
 
  private:
   uint32_t m_count;
@@ -40,4 +42,5 @@ class Scene
   std::array<Material, 256> m_materials;
   Image* m_background_texture;
   glm::dvec3 m_background_color;
+  std::unique_ptr<Medium> m_medium;
 };
