@@ -1,14 +1,9 @@
 #include "renderer.h"
 #include "geometry.h"
 #include "material.h"
+#include "config.h"
 #include "util.h"
 #include <glm/gtc/type_ptr.hpp>
-
-#define PT_DEBUG_NORMAL            0
-#define PT_RUSSIAN_ROULETTE        1
-#define PT_DIRECT_LIGHT_SAMPLING   1
-#define PT_INDIRECT_LIGHT_SAMPLING 1
-#define PT_VOLUMETRIC              1
 
 std::atomic<uint64_t> bounce_counter = 0;
 
@@ -135,7 +130,7 @@ glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, bool perfect_reflectio
 
 #if PT_INDIRECT_LIGHT_SAMPLING
   Ray outgoing(surface.point, local2world * wi);
-  radiance += trace_ray(outgoing, depth + 1, perfectly_specular) * brdf.eval(wi, wo);
+  radiance += trace_ray(outgoing, depth + 1, perfectly_specular) * brdf.eval(wo, wi);
 #endif
 
   return radiance * rr_weight;

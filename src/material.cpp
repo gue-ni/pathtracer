@@ -1,10 +1,9 @@
 #include "material.h"
+#include "config.h"
 #include <cassert>
 #include <cmath>
 #include "geometry.h"
 #include "util.h"
-
-#define PT_IMPORTANCE_SAMPLE 1
 
 /*
 Links:
@@ -14,7 +13,10 @@ https://computergraphics.stackexchange.com/questions/7656/importance-sampling-mi
 
 static double AbsDot(const glm::dvec3& a, const glm::dvec3& b) { return glm::abs(glm::dot(a, b)); }
 
-static double SameHemisphere(const glm::dvec3& a, const glm::dvec3& b) { return glm::dot(a, b) > 0.0; }
+static double SameHemisphere(const glm::dvec3& a, const glm::dvec3& b)
+{
+  return glm::dot(glm::normalize(a), glm::normalize(b)) > 0.0;
+}
 
 static double CosTheta(const glm::dvec3& a)
 {
@@ -142,7 +144,7 @@ glm::dvec3 BxDF::sample_diffuse(const glm::dvec3& wo) const
 glm::dvec3 BxDF::eval_diffuse(const glm::dvec3& wo, const glm::dvec3& wi) const
 {
 #if 0
-  double cos_theta = wi.y;
+  double cos_theta = CosTheta(wi);
   double pdf = cos_theta / pi;
   return ((surface->albedo() / pi)) * cos_theta / pdf;
 #else
@@ -150,20 +152,21 @@ glm::dvec3 BxDF::eval_diffuse(const glm::dvec3& wo, const glm::dvec3& wi) const
 #endif
 }
 
-glm::dvec3 BxDF::sample_specular(const glm::dvec3& wo) const
+glm::dvec3 BxDF::sample_specular(const glm::dvec3& V) const
 {
+  glm::dvec3 N(0.0, 1.0, 0.0);
   double fuzz = surface->material->roughness;
-  return glm::reflect(-wo, glm::dvec3(0, 1, 0)) + (fuzz * random_unit_vector());
+  return glm::reflect(-V, N) + (fuzz * random_unit_vector());
 }
 
-glm::dvec3 BxDF::eval_specular(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+glm::dvec3 BxDF::eval_specular(const glm::dvec3& V, const glm::dvec3& L) const { return surface->albedo(); }
 
-glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& wo) const
+glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& V) const
 {
 #if PT_IMPORTANCE_SAMPLE
-  return Sample_Beckmann(wo, surface->material->roughness);
+  return Sample_Beckmann(V, surface->material->roughness);
 #else
-  return sample_diffuse(wo);
+  return sample_diffuse(V);
 #endif
 }
 
@@ -205,24 +208,28 @@ glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& V, const glm::dvec3& L) const
   return (brdf_value * NoL) / pdf;
 }
 
-glm::dvec3 BxDF::sample_mirror(const glm::dvec3& wo) const { return glm::reflect(-wo, glm::dvec3(0, 1, 0)); }
+glm::dvec3 BxDF::sample_mirror(const glm::dvec3& V) const
+{
+  glm::dvec3 N(0, 1, 0);
+  return glm::reflect(-V, N);
+}
 
-glm::dvec3 BxDF::eval_mirror(const glm::dvec3& wo, const glm::dvec3& wi) const { return surface->albedo(); }
+glm::dvec3 BxDF::eval_mirror(const glm::dvec3& V, const glm::dvec3& L) const { return surface->albedo(); }
 
-glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& wo) const
+glm::dvec3 BxDF::sample_dielectric(const glm::dvec3& V) const
 {
   double refraction_index = surface->material->refraction_index;
   double ri = surface->inside ? (1.0 / refraction_index) : refraction_index;
 
-  glm::dvec3 normal(0, 1, 0);
+  glm::dvec3 N(0, 1, 0);
 
-  double cos_theta = glm::min(wo.y, 1.0);
+  double cos_theta = glm::min(V.y, 1.0);
   double sin_theta = std::sqrt(1.0 - sq(cos_theta));
 
   if ((ri * sin_theta > 1.0) || (reflectance(cos_theta, ri) > random_double())) {
-    return glm::reflect(-wo, normal);
+    return glm::reflect(-V, N);
   } else {
-    return glm::refract(-wo, normal, ri);
+    return glm::refract(-V, N, ri);
   }
 }
 
