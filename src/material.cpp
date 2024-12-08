@@ -61,7 +61,9 @@ static glm::dvec3 Sample_Beckmann(const glm::dvec3& V, double roughness)
   double e0 = random_double(), e1 = random_double();
   double phi = 2.0 * pi * e0;
   double theta = std::atan(std::sqrt(-alpha2 * std::log(1.0 - (e1 / pi))));
-  return glm::reflect(-V, spherical_to_cartesian(theta, phi));
+  glm::dvec3 H = spherical_to_cartesian(theta, phi);
+  glm::dvec3 L = glm::reflect(-V, H);
+  return L;
 }
 
 static double PDF_Beckmann(double NoH, double roughness)
@@ -172,6 +174,10 @@ glm::dvec3 BxDF::sample_microfacet(const glm::dvec3& V) const
 
 glm::dvec3 BxDF::eval_microfacet(const glm::dvec3& V, const glm::dvec3& L) const
 {
+#if PT_CHECK_HEMISPHERE
+  if (L.y < 0.0 || V.y < 0.0) return glm::dvec3(0);
+#endif
+
   glm::dvec3 base_color = surface->albedo();
   double metallic = surface->material->metallic;
   double roughness = surface->material->roughness;
