@@ -26,7 +26,8 @@ std::optional<Intersection> Scene::find_intersection(const Ray& ray) const { ret
 static glm::dvec3 sky_gradient(const glm::dvec3& direction)
 {
   double a = 0.5 * (direction.y + 1.0);
-  return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
+  constexpr glm::dvec3 white = rgb(255, 255, 255), sky_blue = rgb(130, 200, 229);
+  return glm::mix(white, sky_blue, a);
 }
 
 void Scene::set_background_texture(std::unique_ptr<Image> texture) { m_background_texture = std::move(texture); }
@@ -37,16 +38,18 @@ int Scene::light_count() const { return m_lights.size(); }
 
 glm::dvec3 Scene::sample_background(const Ray& r) const
 {
+  glm::dvec3 color;
   if (m_background_texture) {
-    auto color = m_background_texture->sample(equirectangular(r.direction));
-    return reverse_gamma_correction(color);
+    color = m_background_texture->sample(equirectangular(r.direction));
   } else {
     if (glm::all(glm::greaterThanEqual(m_background_color, glm::dvec3(0.0)))) {
-      return m_background_color;
+      color = m_background_color;
     } else {
-      return sky_gradient(r.direction);
+      color = sky_gradient(r.direction);
     }
   }
+
+  return reverse_gamma_correction(color);
 }
 
 int Scene::primitive_count() { return m_primitives.size(); }

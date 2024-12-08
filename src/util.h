@@ -49,13 +49,13 @@ inline T map_range(const T& value, const T& in_min, const T& in_max, const T& ou
 }
 
 template <typename Byte>
-inline glm::dvec3 rgb(Byte r, Byte g, Byte b)
+inline constexpr glm::dvec3 rgb(Byte r, Byte g, Byte b)
 {
   return glm::dvec3(double(r), double(g), double(b)) / 255.0;
 }
 
 template <typename RGB>
-inline glm::dvec3 rgb(const RGB& color)
+inline constexpr glm::dvec3 rgb(const RGB& color)
 {
   return rgb(color.x, color.y, color.z);
 }
