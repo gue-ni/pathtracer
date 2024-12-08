@@ -22,6 +22,8 @@ cmake --build .
 
 ## Results
 
+![](https://www.jakobmaier.at/posts/fun-with-path-tracing/img/bmw_m3_e30.png)
+
 ![](./doc/results/render_d94b533_1024_3_25-11-2024_202142.png)
 
 ![](./doc/results/render_5000s_3b_1731181914.png)
