@@ -21,7 +21,6 @@ struct Material {
   glm::dvec3 albedo = glm::dvec3(0.8);
   glm::dvec3 emission = glm::dvec3(0.0);
   double refraction_index = 1.52;
-  double shininess = 1000;  // range [0, 1000]
   double roughness = 0.5;   //
   double metallic = 0.5;    // 0.0 for dielectrics, 1.0 for metals
   Image* texture = nullptr;
@@ -30,7 +29,7 @@ struct Material {
 
   inline bool is_perfectly_specular() const
   {
-    constexpr double THRESHOLD = 1e-9;
+    constexpr double THRESHOLD = 1e-5;
     return is_type(Material::DIELECTRIC) || is_type(Material::MIRROR) ||
            ((is_type(Material::SPECULAR) || is_type(Material::MICROFACET)) && (roughness < THRESHOLD));
   }

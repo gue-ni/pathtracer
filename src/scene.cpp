@@ -12,13 +12,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
-Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U) {}
-
-std::optional<Intersection> Scene::find_intersection(const Ray& ray)
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U)
 {
-  assert(m_bvh != nullptr);
-  return m_bvh->traverse(ray);
 }
+
+std::optional<Intersection> Scene::find_intersection(const Ray& ray) const { return m_bvh->traverse(ray); }
 
 static glm::dvec3 sky_gradient(const glm::dvec3& direction)
 {
@@ -26,7 +24,13 @@ static glm::dvec3 sky_gradient(const glm::dvec3& direction)
   return (1.0 - a) * glm::dvec3(1.0, 1.0, 1.0) + a * glm::dvec3(0.5, 0.7, 1.0);
 }
 
-glm::dvec3 Scene::sample_background(const Ray& r)
+void Scene::set_background_texture(std::unique_ptr<Image> texture) { m_background_texture = std::move(texture); }
+
+void Scene::set_background_color(const glm::dvec3& color) { m_background_color = color; }
+
+int Scene::light_count() const { return m_lights.size(); }
+
+glm::dvec3 Scene::sample_background(const Ray& r) const
 {
   if (m_background_texture) {
     auto color = m_background_texture->sample(equirectangular(r.direction));
@@ -39,6 +43,8 @@ glm::dvec3 Scene::sample_background(const Ray& r)
     }
   }
 }
+
+int Scene::primitive_count() { return m_primitives.size(); }
 
 Material* Scene::add_material(const Material& m)
 {
@@ -55,14 +61,16 @@ void Scene::add_primitive(const Primitive& p)
   m_primitives.push_back(p_new);
 }
 
-Primitive Scene::random_light()
+Primitive Scene::random_light() const
 {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
   std::uniform_int_distribution<> distr(0, int(m_lights.size() - 1));
   int random_index = distr(gen);
   return m_lights[random_index];
 }
+
+std::vector<Primitive> Scene::lights() const { return m_lights; }
 
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
@@ -140,12 +148,8 @@ std::vector<Primitive> Scene::load_obj(const std::filesystem::path& filename)
 
     material.albedo = glm::dvec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
     material.emission = glm::dvec3(m.emission[0], m.emission[1], m.emission[2]);
-    material.shininess = m.shininess;
-#if 1
-    // PBR parameters
     material.roughness = m.roughness;
     material.metallic = m.metallic;
-#endif
 
     if (!m.diffuse_texname.empty()) {
       auto diffuse_texname = reader_config.mtl_search_path / std::filesystem::path(m.diffuse_texname);
