@@ -5,7 +5,6 @@
 #include "geometry.h"
 #include "material.h"
 #include "ray.h"
-#include "medium.h"
 #include <glm/glm.hpp>
 #include <vector>
 #include <array>
@@ -16,7 +15,6 @@ class Scene
 {
  public:
   Scene();
-  Scene(std::unique_ptr<Medium> medium);
   void compute_bvh();
   void add_primitive(const Primitive& p);
   void add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end);
@@ -32,7 +30,6 @@ class Scene
   int light_count() const;
   Primitive random_light() const;
   std::vector<Primitive> lights() const;
-  const Medium* medium() const;
 
  private:
   uint32_t m_count;
@@ -43,5 +40,4 @@ class Scene
   std::array<Material, 256> m_materials;
   std::unique_ptr<Image> m_background_texture;
   glm::dvec3 m_background_color;
-  std::unique_ptr<Medium> m_medium;
 };

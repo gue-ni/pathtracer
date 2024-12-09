@@ -12,12 +12,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/io.hpp>
 
-Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U), m_medium(nullptr)
-{
-}
-
-Scene::Scene(std::unique_ptr<Medium> medium)
-    : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U), m_medium(std::move(medium))
+Scene::Scene() : m_bvh(nullptr), m_background_texture(nullptr), m_background_color(-1.0), m_count(0U)
 {
 }
 
@@ -76,8 +71,6 @@ Primitive Scene::random_light() const
 }
 
 std::vector<Primitive> Scene::lights() const { return m_lights; }
-
-const Medium* Scene::medium() const { return m_medium.get(); }
 
 void Scene::add_primitives(const std::vector<Primitive>::iterator begin, const std::vector<Primitive>::iterator end)
 {
