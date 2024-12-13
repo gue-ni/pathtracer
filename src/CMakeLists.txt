@@ -1,9 +1,4 @@
 cmake_minimum_required(VERSION 3.18)
-project(pathtracer LANGUAGES C CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 include(FetchContent)
 
@@ -43,5 +38,5 @@ add_library(pathtracer
 target_link_libraries(pathtracer PUBLIC nlohmann_json::nlohmann_json)
 target_include_directories(pathtracer PUBLIC "${glm_SOURCE_DIR}" "${json_SOURCE_DIR}" ".")
 
-add_executable(pt "main.cpp")
-target_link_libraries(pt PRIVATE pathtracer)
+# add_executable(pt "main.cpp")
+# target_link_libraries(pt PRIVATE pathtracer)
