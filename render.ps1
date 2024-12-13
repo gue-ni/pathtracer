@@ -1,7 +1,7 @@
 $datestamp = get-date -format "dd-MM-yyyy_HHmmss"
 $git_hash = git rev-parse --short HEAD
 
-$pathtracer = "./out/Release/pt.exe"
+$pathtracer = "./out/src/Release/pt.exe"
 $config   = $args[0]
 $samples  = if ($args.Count -ge 2) { $args[1] } else { 8 }
 $bounces  = if ($args.Count -ge 3) { $args[2] } else { 3 }
