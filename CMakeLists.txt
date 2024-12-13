@@ -10,3 +10,4 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif(MSVC)
 
 add_subdirectory(src)
+add_subdirectory(test)
