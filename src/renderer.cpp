@@ -51,9 +51,6 @@ void Renderer::render(int samples, bool print_progress)
   total_samples += samples;
 }
 
-// https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
-static double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(0.2126, 0.7152, 0.0722)); }
-
 glm::dvec3 Renderer::trace_ray(const Ray& ray, int depth, bool perfect_reflection)
 {
   if (m_max_bounce <= depth) {

@@ -60,6 +60,9 @@ inline constexpr glm::dvec3 rgb(const RGB& color)
   return rgb(color.x, color.y, color.z);
 }
 
+// https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
+inline double luma(const glm::dvec3& color) { return glm::dot(color, glm::dvec3(0.2126, 0.7152, 0.0722)); }
+
 inline glm::dmat3 local_to_world(const glm::dvec3& up)
 {
   glm::vec3 u = glm::normalize(up);
