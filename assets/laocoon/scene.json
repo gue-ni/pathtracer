@@ -1,0 +1,35 @@
+{
+	"image_width": 480,
+	"image_height": 640,
+	"camera_aperture": 0.5,
+	"camera_focus_distance": 24,
+	"camera_position": {
+		"x": 0,
+		"y": 10,
+		"z": 30
+	},
+	"camera_target": {
+		"x": 0,
+		"y": 5,
+		"z": 0
+	},
+	"camera_fov": 14.5,
+	"models": ["assets/laocoon/laocoon_hd.obj"],
+	"background_color": {
+		"x": 0.01,
+		"y": 0.01,
+		"z": 0.01
+	},
+	"spheres": [
+		{
+			"center": { "x": 0, "y": 25, "z": 0 },
+			"radius": 5,
+			"type": "DIFFUSE",
+			"emissive": {
+				"x": 2,
+				"y": 2,
+				"z": 2
+			}
+		}
+	]
+}
