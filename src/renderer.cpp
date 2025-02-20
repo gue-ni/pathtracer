@@ -10,7 +10,7 @@ std::atomic<uint64_t> bounce_counter = 0;
 Renderer::Renderer(Camera* camera, Scene* scene, int max_bounce)
     : m_camera(camera),
       m_scene(scene),
-      m_buffer(camera->width() * camera->height(), glm::dvec3(0.0)),
+      m_buffer(camera->width() * camera->height(), glm::dvec4(0.0)),
       m_max_bounce(max_bounce)
 {
 }
@@ -35,7 +35,7 @@ void Renderer::render(int samples, bool print_progress)
         result = glm::mix(result, color, 1.0 / double(total_samples + s + 1));
       }
 
-      m_buffer[i] = result;
+      m_buffer[i] = glm::dvec4(result, 1.0);
     }
   }
 
@@ -163,14 +163,15 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
 
 void Renderer::save_image(const std::filesystem::path& path)
 {
-  Image output(m_camera->width(), m_camera->height(), 3);
+  Image output(m_camera->width(), m_camera->height(), 4);
 
   for (int y = 0; y < m_camera->height(); y++) {
     for (int x = 0; x < m_camera->width(); x++) {
-      glm::dvec3 color = m_buffer[y * m_camera->width() + x];
+      glm::dvec4 value = m_buffer[y * m_camera->width() + x];
+      glm::dvec3 color(value.r, value.g, value.b);
       color = aces_tone_map(color);
       color = gamma_correction(color);
-      glm::u8vec3 pixel = map_pixel(color);
+      auto pixel = map_pixel(glm::dvec4(color, value.a));
       output.set_pixel(x, y, glm::value_ptr(pixel));
     }
   }

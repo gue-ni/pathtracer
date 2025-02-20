@@ -18,11 +18,11 @@ class Image
   int height() const { return m_height; }
   int channels() const { return m_channels; }
   void set_pixel(int x, int y, unsigned char* pixel);
+  glm::u8vec3 pixel(int x, int y) const;
   bool valid() const;
 
  private:
   unsigned char* m_data;
   int m_width, m_height, m_channels;
-  glm::u8vec3 pixel(int x, int y) const;
   void free_data();
 };

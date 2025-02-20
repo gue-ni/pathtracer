@@ -162,5 +162,9 @@ inline glm::u8vec3 map_pixel(const glm::dvec3 color)
   return {map_pixel(color.r), map_pixel(color.g), map_pixel(color.b)};
 }
 
-inline glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
+inline glm::u8vec4 map_pixel(const glm::dvec4 color)
+{
+  return {map_pixel(color.r), map_pixel(color.g), map_pixel(color.b), map_pixel(color.a)};
+}
 
+inline glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }

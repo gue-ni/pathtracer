@@ -24,7 +24,7 @@ class Renderer
  private:
   Scene *m_scene;
   Camera *m_camera;
-  std::vector<glm::dvec3> m_buffer;
+  std::vector<glm::dvec4> m_buffer;
   int m_max_bounce;
 
   glm::dvec3 trace_ray(const Ray &ray, int depth, bool perfect_reflection = false);

@@ -34,7 +34,7 @@ bool Image::write(const std::filesystem::path& path) const
 {
   assert(valid());
   auto tmp = path.string();
-  return stbi_write_png(tmp.c_str(), m_width, m_height, m_channels, m_data, m_width * 3);
+  return stbi_write_png(tmp.c_str(), m_width, m_height, m_channels, m_data, m_width * m_channels);
 }
 
 glm::u8vec3 Image::pixel(int x, int y) const
@@ -50,7 +50,7 @@ glm::u8vec3 Image::pixel(int x, int y) const
 void Image::set_pixel(int x, int y, unsigned char* pixel)
 {
   if (valid() && (0 <= x && x < m_width) && (0 <= y && y < m_height)) {
-    int i = (y * m_width + x) * 3;
+    int i = (y * m_width + x) * m_channels;
     for (int c = 0; c < m_channels; c++) {
       m_data[i + c] = pixel[c];
     }
