@@ -7,15 +7,6 @@
 
 std::atomic<uint64_t> bounce_counter = 0;
 
-static uint8_t map_pixel(double color) { return static_cast<uint8_t>(glm::clamp(color, 0.0, 1.0) * 255.0); }
-
-static glm::u8vec3 map_pixel(const glm::dvec3 color)
-{
-  return {map_pixel(color.r), map_pixel(color.g), map_pixel(color.b)};
-}
-
-static glm::dvec3 normal_as_color(const glm::dvec3& N) { return 0.5 * glm::dvec3(N.x + 1, N.y + 1, N.z + 1); }
-
 Renderer::Renderer(Camera* camera, Scene* scene, int max_bounce)
     : m_camera(camera),
       m_scene(scene),
@@ -40,7 +31,7 @@ void Renderer::render(int samples, bool print_progress)
 
       for (int s = 0; s < samples; s++) {
         Ray ray = m_camera->get_ray(x, y);
-        auto color = trace_ray(ray, 0);
+        glm::dvec3 color = trace_ray(ray, 0);
         result = glm::mix(result, color, 1.0 / double(total_samples + s + 1));
       }
 
@@ -168,13 +159,6 @@ glm::dvec3 Renderer::sample_lights(const glm::dvec3& point, const BxDF& bsdf, co
   }
 
   return result;
-}
-
-// Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
-static glm::dvec3 aces_tone_map(glm::dvec3 x)
-{
-  const double a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
-  return (x * (a * x + b)) / (x * (c * x + d) + e);
 }
 
 void Renderer::save_image(const std::filesystem::path& path)
